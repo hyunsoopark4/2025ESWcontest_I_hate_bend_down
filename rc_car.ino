@@ -1,6 +1,6 @@
 //서보모터
 #include <Servo.h>
-#include <NeoSWSerial.h>
+#include <NeoSWSerial.h>~
 Servo myservo;  // create servo object to control a servo
 
 #define SERVO_PIN 10    // D10
