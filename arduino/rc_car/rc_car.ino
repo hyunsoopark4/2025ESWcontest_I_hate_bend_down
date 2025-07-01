@@ -1,6 +1,8 @@
 //서보모터
 #include <Servo.h>
 #include <NeoSWSerial.h>
+#include "bt_serial.h"
+
 Servo myservo;  // create servo object to control a servo
 
 #define SERVO_PIN 10    // D10
@@ -35,6 +37,8 @@ enum each_func {L_MOTOR, R_MOTOR, FORWARD, BACK, LEFT_TURN, R_TURN};
 #define MANUAL_MODE 1
 #define MANUAL_TICKRATE
 
+#define LOOP_LATENCY 50
+
 char clientRead;
 char command[COUNTOF_COMMAND][BUFFERSIZE] = {"auto","manual"};
 char sendBuffer[BUFFERSIZE];
@@ -66,6 +70,7 @@ void setup() {
 
 void loop() {
   clientRead = -1; //init client message
+
   if (mySerial.available()) {//only when recieved
     clientRead = mySerial.read();//read from client
 
@@ -80,7 +85,6 @@ void loop() {
     }
 
     if(clientRead=='/'||clientRead=='!'){
-      clientRead=-1;
       call_command();
     }
     return;
@@ -146,8 +150,11 @@ void call_command()
   char buffer[BUFFERSIZE];
   memset(buffer, 0, sizeof(buffer));  // buffer 배열 초기화
 
+  delay(LOOP_LATENCY);
+
   while (mySerial.available() && n < BUFFERSIZE - 1) {
     char ch = mySerial.read();
+
     // 명령 구분 문자 도달 시 종료 (예: 개행문자)
     if (ch == '\n' || ch == '\r') break;
 
@@ -168,7 +175,8 @@ void call_command()
     case 1:switchmode(MANUAL_MODE);break;
     case 2:
     snprintf(sendBuffer,sizeof(sendBuffer),"Unknown Command: %s\n",buffer);
-    mySerial.write(sendBuffer);
+    //mySerial.write(sendBuffer);
+    printf_chunked(mySerial,"Unknown Command: %s\n",buffer);
     Serial.write(sendBuffer);
     break;
   }
@@ -182,7 +190,8 @@ void switchmode(int modifiedMode)
   //mySerial.write("The mode has been set to "); mySerial.write(command[currentMode]); mySerial.write(".\n");
   //Serial.write("The mode has been set to "); Serial.write(command[currentMode]); Serial.write(".\n");
   snprintf(sendBuffer, sizeof(sendBuffer), "The mode has been set to %s.\n", command[currentMode]);
-  mySerial.write(sendBuffer);  // BT 출력 안정화
+  printf_chunked(mySerial,"The mode has been set to %s.\n", command[currentMode]);
+  //mySerial.write(sendBuffer);  // BT 출력 안정화
   Serial.write(sendBuffer);    // USB Serial에도 동일하게 출력
 }
 
@@ -367,4 +376,6 @@ int get_ultrasonic_cm()
   
   return distanceCM;
 }
+
+
 
