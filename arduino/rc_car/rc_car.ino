@@ -20,11 +20,22 @@
 
 #define LOOP_LATENCY 50
 
+// LineTracing
+#define FF 0  // 십자 교차로 (S1 + S4 감지)
+#define FL 1  // 왼쪽 T자 (S1 감지)
+#define FR 2  // 오른쪽 T자 (S4 감지)
+
+#define SENSOR_LEFT 7  // 왼쪽 끝
+#define SENSOR_MID_L 9 // 중앙 왼쪽
+#define SENSOR_MID_R 10 // 중앙 오른쪽
+#define SENSOR_RIGHT 8 // 오른쪽 끝
+
+
 char clientRead;
 char command[COUNTOF_COMMAND][BUFFERSIZE] = {"auto", "manual"};
 char sendBuffer[BUFFERSIZE];
 char key[COUNTOF_KEY] = "sflrb";
-int currentMode = MANUAL_MODE;
+int currentMode = AUTO_MODE;
 
 NeoSWSerial mySerial(12, 13); // RX, TX
 
@@ -39,13 +50,19 @@ void setup()
     mySerial.println("BT Serial initiated");
 
     // 서보모터
-    servo_setup();
+//    servo_setup();
 
     // DC모터
     car_stop();
 
     // 초음파
-    ultrasonic_setup();
+//    ultrasonic_setup();
+
+    // 라인트레이싱 센서
+    pinMode(SENSOR_LEFT, INPUT);
+    pinMode(SENSOR_MID_L, INPUT);
+    pinMode(SENSOR_MID_R, INPUT);
+    pinMode(SENSOR_RIGHT, INPUT);
 }
 
 void loop()
@@ -87,9 +104,72 @@ void loop()
     {
         if (currentMode == AUTO_MODE)
         {
-            autopilot();
+            //autopilot();
+            linetracing(FL);
         }
         return;
+    }
+}
+
+void linetracing(int mode)
+{
+    bool s1 = digitalRead(SENSOR_LEFT);   
+    bool s2 = digitalRead(SENSOR_MID_L);  
+    bool s3 = digitalRead(SENSOR_MID_R);  
+    bool s4 = digitalRead(SENSOR_RIGHT);  
+
+    // 1. 교차점 도달 조건
+    bool is_cross = false;
+
+//    if (mode == FF && s1 && s4)
+//    {
+//        is_cross = true;
+//    }
+//    else if (mode == FL && s1 && !s4)
+//    {
+//        is_cross = true;
+//    }
+//    else if (mode == FR && !s1 && s4)
+//    {
+//        is_cross = true;
+//    }
+
+    if(s1 || s4) is_cross = true;
+
+    if (is_cross)
+    {
+        Serial.print("교차점 감지됨: ");
+        if (mode == FF) Serial.println("FF");
+        if (mode == FL) Serial.println("FL");
+        if (mode == FR) Serial.println("FR");
+
+        back_on(OPT_SPEED/2);
+        delay(100);
+        car_stop();
+
+        delay(5000);
+
+        
+        return;
+    }
+
+    // 2. 라인트레이싱: 중앙 두 센서 기준
+    if (s2 && !s3)
+    {
+        // 왼쪽으로 틀어짐 → 오른쪽 보정
+        set_motor_speeds(OPT_SPEED, OPT_SPEED/2);
+        Serial.println("Adjust right");
+    }
+    else if (!s2 && s3)
+    {
+        // 오른쪽으로 틀어짐 → 왼쪽 보정
+        set_motor_speeds(OPT_SPEED/2, OPT_SPEED);
+        Serial.println("Adjust left");
+    }
+    else
+    {
+        forward_on(OPT_SPEED);
+        Serial.println("Forward");
     }
 }
 
@@ -258,4 +338,3 @@ void straight_auto()
         }
     }
 }
-
