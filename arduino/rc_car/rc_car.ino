@@ -11,20 +11,23 @@
 // enum each_func {L_MOTOR, R_MOTOR, FORWARD, BACK, LEFT_TURN, R_TURN};
 
 // BT
-#define COUNTOF_COMMAND 2
+#define COUNTOF_COMMAND 3
 #define COUNTOF_KEY 5
 #define BUFFERSIZE 64
 #define AUTO_MODE 0
 #define MANUAL_MODE 1
+#define TRACING_MODE 2
 #define MANUAL_TICKRATE
 
 #define LOOP_LATENCY 50
 
 char clientRead;
-char command[COUNTOF_COMMAND][BUFFERSIZE] = {"auto", "manual"};
+char command[COUNTOF_COMMAND][BUFFERSIZE] = {"auto", "manual", "trace"};
 char sendBuffer[BUFFERSIZE];
 char key[COUNTOF_KEY] = "sflrb";
 int currentMode = MANUAL_MODE;
+
+int x,y;
 
 NeoSWSerial mySerial(12, 13); // RX, TX
 
@@ -54,6 +57,7 @@ void loop()
 
     if (mySerial.available())
     {                                 // only when recieved
+
         clientRead = mySerial.read(); // read from client
 
         Serial.println(clientRead);
@@ -90,6 +94,38 @@ void loop()
             autopilot();
         }
         return;
+        
+        if (currentMode == TRACING_MODE)
+        {
+            int n = 0;
+            char buffer[BUFFERSIZE];
+            memset(buffer, 0, sizeof(buffer)); // buffer 초기화
+
+            delay(LOOP_LATENCY);
+
+            while (mySerial.available() && n < BUFFERSIZE - 1)
+            {
+                char ch = mySerial.read();
+                if (ch == '\n' || ch == '\r') break;
+                buffer[n++] = ch;
+            }
+            buffer[n] = '\0';
+
+            int parsedX = 0, parsedY = 0;
+            if (sscanf(buffer, "%d %d", &parsedX, &parsedY) == 2) {
+                x = parsedX;
+                y = parsedY;
+
+                Serial.print("x = ");
+                Serial.print(x);
+                Serial.print(", y = ");
+                Serial.println(y);
+
+                line_tracing(x, y);
+            }
+            return;
+        }
+
     }
 }
 
@@ -176,6 +212,9 @@ void call_command()
         switchmode(MANUAL_MODE);
         break;
     case 2:
+        switchmode(TRACING_MODE);
+        break;
+    case 3:
         snprintf(sendBuffer, sizeof(sendBuffer), "Unknown Command: %s\n", buffer);
         // mySerial.write(sendBuffer);
         printf_chunked(mySerial, "Unknown Command: %s\n", buffer);
@@ -190,7 +229,7 @@ void switchmode(int modifiedMode)
 {
     car_stop();
     currentMode = modifiedMode;
-    snprintf(sendBuffer, sizeof(sendBuffer), "The mode has been set to %s.\n", command[currentMode]);
+    snprintf(sendBuffer, sizeof(sendBuffer), "The mode has been set to \'%s\' mode.\n", command[currentMode]);
     printf_chunked(mySerial, "The mode has been set to %s.\n", command[currentMode]);
     // mySerial.write(sendBuffer);  // BT 출력 안정화
     Serial.write(sendBuffer); // USB Serial에도 동일하게 출력
