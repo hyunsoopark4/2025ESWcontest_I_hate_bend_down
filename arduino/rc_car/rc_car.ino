@@ -4,6 +4,7 @@
 #include "dc_motor.h"
 #include "servo.h"
 #include "ultrasonic.h"
+#include "pid_line.h"
 
 #define CYCLE_DEGREE 5 // the degree cycled per the assigned tick
 
@@ -63,6 +64,10 @@ void setup()
     pinMode(SENSOR_MID_L, INPUT);
     pinMode(SENSOR_MID_R, INPUT);
     pinMode(SENSOR_RIGHT, INPUT);
+
+    // call pid_setup -> 라인트레이싱 센서에서 pinMode를 호출하는 것과 같은 호출구문이라 주석처리
+    // pid_line_setup();
+    
 }
 
 void loop()
@@ -105,7 +110,8 @@ void loop()
         if (currentMode == AUTO_MODE)
         {
             //autopilot();
-            linetracing(FL);
+            // linetracing(FL);
+            move_to_node(1);     // 함수 호출 시 1 ~ N까지 교차점 개수 설정할 수 있습니다. 
         }
         return;
     }
@@ -120,20 +126,7 @@ void linetracing(int mode)
 
     // 1. 교차점 도달 조건
     bool is_cross = false;
-
-//    if (mode == FF && s1 && s4)
-//    {
-//        is_cross = true;
-//    }
-//    else if (mode == FL && s1 && !s4)
-//    {
-//        is_cross = true;
-//    }
-//    else if (mode == FR && !s1 && s4)
-//    {
-//        is_cross = true;
-//    }
-
+    
     if(s1 || s4) is_cross = true;
 
     if (is_cross)
@@ -143,9 +136,10 @@ void linetracing(int mode)
         if (mode == FL) Serial.println("FL");
         if (mode == FR) Serial.println("FR");
 
-        back_on(OPT_SPEED/2);
-        delay(100);
-        car_stop();
+        // back_on(OPT_SPEED/2);
+        // delay(100);
+        // car_stop();
+        car_brake(100); // 위 세 줄과 동일한 기능을 하는 브레이크 함수입니다.
 
         delay(5000);
 
@@ -171,6 +165,20 @@ void linetracing(int mode)
         forward_on(OPT_SPEED);
         Serial.println("Forward");
     }
+
+}
+
+// 한 칸(노드)씩 이동하며 최종 목적 노드까지 이동하는 함수
+void move_to_node(int target)
+{
+    node_count = 0;
+    crossed = false;
+
+    while (node_count < target) {
+        pid_linetrace(target);
+    }
+    
+    car_brake(120);
 }
 
 void autopilot()
