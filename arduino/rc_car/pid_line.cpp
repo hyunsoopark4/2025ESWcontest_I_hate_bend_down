@@ -4,9 +4,11 @@
 // PID 상수(Kp, Ki, Kd) <- 적당히 튜닝해서 보정을 해야합니다. 그럼 라인 흔들림?을 더 잡을 수 있어요.
 // 튜닝 방향은 GPT한테 코드 주고, 물어보면서 해야할 것 같아요.
 // 실제 로봇 움직임 보면서 튜닝을 해야 해서, 우선 GPT 추천 값으로 넣어놨습니다. - 0720
-float Kp = 20.0;
-float Ki = 0.5;
-float Kd = 10.0;
+float Kp = 40.0;        //Error (오차 크기) 가중치
+float Ki = 0.4;         //Integral (누적) 가중치
+float Kd = 30.0;        //derivative (보정수준) 가중치
+
+int base_speed = 100;
 
 int last_error = 0;
 int integral = 0;
@@ -38,6 +40,10 @@ void pid_linetrace(int target_node)
 
     if (is_cross && !crossed)
     {
+
+        last_error = 0;
+        integral = 0;
+
         crossed = true;
         node_count++;
 
@@ -66,25 +72,40 @@ void pid_linetrace(int target_node)
     int weighted_sum = 0;
     int active_count = 0;
 
+    /*
     for (int i = 0; i < 4; i++) {
         if (sensor[i]) {
             weighted_sum += weights[i];
             active_count++;
         }
     }
+    */
 
-    int error = (active_count > 0) ? (weighted_sum / active_count) : last_error;
-    integral += error;
-    integral = constrain(integral, -100, 100);
+    if (sensor[1]) weighted_sum += -1;
+    if (sensor[2]) weighted_sum += 1;
+
+    //int error = (active_count > 0) ? (weighted_sum / active_count) : last_error;
+    int error = (active_count > 0) ? weighted_sum : last_error;
+    //integral += abs(error);
+    integral += abs(error);
+    //integral = constrain(integral, -100, 100);
+    integral = constrain(integral, 0, 100);
     int derivative = error - last_error;
     last_error = error;
 
-    int output = (Kp * error) + (Ki * integral) + (Kd * derivative);
+    //int output = (Kp * error) + (Ki * integral) + (Kd * derivative);
+    int output = ((Kp * error) + (Kd * derivative)) * Ki *(100 - integral);
 
-    int base_speed = 220;
-    int left_speed = constrain(base_speed - output, 0, 255);
-    int right_speed = constrain(base_speed + output, 0, 255);
+    int left_speed = constrain(base_speed + output, 0, 255);
+    int right_speed = constrain(base_speed - output, 0, 255);
 
-    l_motor_on(left_speed);
-    r_motor_on(right_speed);
+    set_motor_speeds(left_speed,right_speed);
 }
+
+/*
+RC카가 크게 틀어져 있을수록 센서 감지 지속시간이 짧음
+integral 은 누적 오차같은 것이라면, 센서 감지 지속시간이 클수록 integral값이 커지므로 오히려 integral이 클수록 선을 잘 따라가고 있는것임
+센서 2개로 감지하는 것이라면, (현재오차-이전오차)의 크기 자체는 의미가 없는듯?
+1. 센서 감지 지속시간 측정 방식?
+2. 그라데이션으로 선을 그리고 아날로그 값을 활용하기?
+*/

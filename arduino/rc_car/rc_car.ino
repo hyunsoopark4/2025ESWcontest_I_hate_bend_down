@@ -112,6 +112,7 @@ void loop()
             //autopilot();
             // linetracing(FL);
             move_to_node(1);     // 함수 호출 시 1 ~ N까지 교차점 개수 설정할 수 있습니다. 
+            delay(1000);
         }
         return;
     }
