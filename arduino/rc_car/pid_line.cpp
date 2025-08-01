@@ -102,10 +102,3 @@ void pid_linetrace(int target_node)
     set_motor_speeds(left_speed,right_speed);
 }
 
-/*
-RC카가 크게 틀어져 있을수록 센서 감지 지속시간이 짧음
-integral 은 누적 오차같은 것이라면, 센서 감지 지속시간이 클수록 integral값이 커지므로 오히려 integral이 클수록 선을 잘 따라가고 있는것임
-센서 2개로 감지하는 것이라면, (현재오차-이전오차)의 크기 자체는 의미가 없는듯?
-1. 센서 감지 지속시간 측정 방식?
-2. 그라데이션으로 선을 그리고 아날로그 값을 활용하기?
-*/
