@@ -78,10 +78,10 @@ void l_motor_on(int speed)
 }
 void forward_on(int speed)
 {
-    analogWrite(R_IA, speed);
+    analogWrite(R_IA, speed + RIGHT_OFFSET);
     analogWrite(R_IB, 0);
     analogWrite(L_IA, 0);
-    analogWrite(L_IB, speed);
+    analogWrite(L_IB, speed + LEFT_OFFSET);
 }
 
 void back_on(int speed)
@@ -93,8 +93,8 @@ void back_on(int speed)
 }
 
 void set_motor_speeds(int r_speed, int l_speed) {
-    analogWrite(R_IA, r_speed);
+    analogWrite(R_IA, r_speed + RIGHT_OFFSET);
     analogWrite(R_IB, 0);
     analogWrite(L_IA, 0);
-    analogWrite(L_IB, l_speed);
+    analogWrite(L_IB, l_speed + LEFT_OFFSET);
 }

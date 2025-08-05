@@ -1,12 +1,13 @@
 #include <Arduino.h>
 #include <stdarg.h>
+#include "bt_serial.h"
 
-#define BUFFER_DELAY 50
+// 블루투스 시리얼 객체 정의 (RX: 12, TX: 13)
+NeoSWSerial BTserial(12, 13);
 
 void printf_chunked(Stream &serial, const char *format, ...)
 {
     constexpr size_t chunksize = 20;
-    constexpr unsigned int delayMs = 50;
 
     char sendBuffer[100];
     va_list args;
@@ -21,6 +22,6 @@ void printf_chunked(Stream &serial, const char *format, ...)
         size_t toSend = (len - sent) < chunksize ? (len - sent) : chunksize;
         serial.write((const uint8_t *)(sendBuffer + sent), toSend);
         sent += toSend;
-        delay(BUFFER_DELAY);
+        //delay(BUFFER_DELAY);
     }
 }

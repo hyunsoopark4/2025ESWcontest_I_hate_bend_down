@@ -5,6 +5,8 @@
 #define OPT_SPEED 200         // DC Motor speed 200 recommended (Min.150 ~ Max.255)
 #define TURNBACK_DURATION 425 //
 #define TURN_DURATION 150     // turn in TURN_DURATION time
+#define LEFT_OFFSET 25
+#define RIGHT_OFFSET 0
 
 void turn_left(int duration = TURN_DURATION);
 void turn_right(int duration = TURN_DURATION);
