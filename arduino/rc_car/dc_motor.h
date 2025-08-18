@@ -10,11 +10,13 @@ void turn_left(int duration = TURN_DURATION);
 void turn_right(int duration = TURN_DURATION);
 void turn_back(int duration = TURNBACK_DURATION);
 void car_stop();
+void car_brake(int time);
 void r_motor_on(int speed = OPT_SPEED);
 void l_motor_on(int speed = OPT_SPEED);
 void forward_on(int speed = OPT_SPEED);
 void back_on(int speed = OPT_SPEED);
 void spin_left_on(int speed = OPT_SPEED);
 void spin_right_on(int speed = OPT_SPEED);
+void set_motor_speeds(int r_speed, int l_speed);
 
 #endif

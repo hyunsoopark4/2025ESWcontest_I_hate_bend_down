@@ -30,6 +30,13 @@ void car_stop()
     analogWrite(L_IB, 0);
 }
 
+void car_brake(int time)
+{
+    back_on(OPT_SPEED / 2);
+    delay(time);
+    car_stop();
+}
+
 void turn_left(int duration)
 {
     spin_left_on();
@@ -83,4 +90,11 @@ void back_on(int speed)
     analogWrite(R_IB, speed);
     analogWrite(L_IA, speed);
     analogWrite(L_IB, 0);
+}
+
+void set_motor_speeds(int r_speed, int l_speed) {
+    analogWrite(R_IA, r_speed);
+    analogWrite(R_IB, 0);
+    analogWrite(L_IA, 0);
+    analogWrite(L_IB, l_speed);
 }
