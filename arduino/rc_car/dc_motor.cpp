@@ -37,29 +37,29 @@ void car_brake(int time)
     car_stop();
 }
 
-void turn_left(int duration)
-{
-    spin_left_on();
-    delay(duration);
-    car_stop();
-    return;
-}
+// void turn_left(int duration)
+// {
+//     spin_left_on();
+//     delay(duration);
+//     car_stop();
+//     return;
+// }
 
-void turn_right(int duration)
-{
-    spin_right_on();
-    delay(duration);
-    car_stop();
-    return;
-}
+// void turn_right(int duration)
+// {
+//     spin_right_on();
+//     delay(duration);
+//     car_stop();
+//     return;
+// }
 
-void turn_back(int duration)
-{
-    spin_right_on();
-    delay(duration);
-    car_stop();
-    return;
-}
+// void turn_back(int duration)
+// {
+//     spin_right_on();
+//     delay(duration);
+//     car_stop();
+//     return;
+// }
 
 void r_motor_on(int speed)
 {

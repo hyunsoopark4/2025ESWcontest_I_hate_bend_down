@@ -6,9 +6,9 @@
 #define TURNBACK_DURATION 425 //
 #define TURN_DURATION 150     // turn in TURN_DURATION time
 
-void turn_left(int duration = TURN_DURATION);
-void turn_right(int duration = TURN_DURATION);
-void turn_back(int duration = TURNBACK_DURATION);
+// void turn_left(int duration = TURN_DURATION);
+// void turn_right(int duration = TURN_DURATION);
+// void turn_back(int duration = TURNBACK_DURATION);
 void car_stop();
 void car_brake(int time);
 void r_motor_on(int speed = OPT_SPEED);
