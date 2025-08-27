@@ -15,10 +15,12 @@
 // 명령어 정의 - 여기서만 수정하면 됨!
 #define COMMAND_LIST(X) \
     X(UNKNOWN, "UNKNOWN") \
-    X(OPEN, "OPEN") \
-    X(CLOSE, "CLOSE") \
-    X(FORWARD, "FORWARD") \
+    X(OPEN, "OPN") \
+    X(CLOSE, "CLS") \
+    X(FORWARD, "F") \
     X(FORWARD_TORQUE, "FT") \
+    X(LEFT, "L") \
+    X(RIGHT, "R") \
 
 
 

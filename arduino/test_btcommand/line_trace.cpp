@@ -10,6 +10,10 @@
 const int speed_fast = 170;
 const int speed_slow = 30;
 
+const int speed_turn_fwd = 100;`
+const int speed_turn_bwd = 0;
+
+
 bool lastState = false;
 
 void line_track(int speed_fast, int speed_slow)
@@ -111,46 +115,6 @@ void line_trace_torque()
     }
 }
 
-void line_count(int count)
-{
-    int current_count = 0;
-    bool crossed = false;
-
-    while (true)
-    {
-        int leftEdge = digitalRead(SENSOR_LEFT);
-        int rightEdge = digitalRead(SENSOR_RIGHT);
-
-        // 교차점 감지
-        if ((leftEdge == HIGH || rightEdge == HIGH) && !crossed)
-        {
-            crossed = true;
-            current_count++;
-
-            // 다음 교차점이 연속으로 감지되지 않도록 약간 밀어줌
-            set_motor_speeds(115, 100);
-            delay(300);
-
-            if (count == 0 || current_count >= count)
-            {
-                car_brake(100); // 브레이크
-                Serial.println("== 목표 교차점 도달: STOP ==");
-                break;
-            }
-
-            // delay(150);  // 관성으로 다음 교차점까지 연속 감지 방지
-        }
-
-        // 교차점에서 빠져나오면 crossed 해제
-        if (leftEdge == LOW && rightEdge == LOW)
-        {
-            crossed = false;
-        }
-
-        line_trace(); // 라인트레이싱 수행
-    }
-}
-
 void turn_left()
 {
     Serial.println("== 왼쪽 회전 시작 ==");
@@ -158,7 +122,7 @@ void turn_left()
     // 1. 왼쪽 센서 감지될 때까지 좌회전
     while (digitalRead(SENSOR_LEFT) == LOW)
     {
-        set_motor_speeds(-110, 100);
+        set_motor_speeds(speed_turn_fwd, speed_turn_bwd);
         delay(5);
     }
 
@@ -167,11 +131,11 @@ void turn_left()
     // 2. 중앙 센서 감지될 때까지 계속 회전
     while (digitalRead(SENSOR_MID_R) == LOW)
     {
-        set_motor_speeds(-110, 100);
+        set_motor_speeds(speed_turn_fwd, speed_turn_bwd);
         delay(5);
     }
 
-    car_stop();
+    car_brake();
     Serial.println("== 중앙 센서 감지됨, 회전 종료 ==");
 
     delay(150); // 정지 후 약간 안정화
@@ -179,7 +143,7 @@ void turn_left()
     // 3. 반대 방향으로 라인 재정렬
     while (digitalRead(SENSOR_MID_R) == HIGH)
     {
-        set_motor_speeds(110, -100);
+        set_motor_speeds(speed_turn_bwd, speed_turn_fwd);
         delay(5);
     }
 
@@ -190,17 +154,36 @@ void turn_left()
 // 오른쪽 회전은 좌우 속도만 반대로 하면 돼
 void turn_right()
 {
+    Serial.println("== 오른쪽 회전 시작 ==");
+
+    // 1. 오른쪽 센서 감지될 때까지 우회전
     while (digitalRead(SENSOR_RIGHT) == LOW)
-        set_motor_speeds(100, -100);
+    {
+        set_motor_speeds(speed_turn_bwd, speed_turn_fwd);
+        delay(5);
+    }
 
+    Serial.println("== 오른쪽 센서 감지됨, 중앙 센서 대기 ==");
+
+    // 2. 중앙 센서 감지될 때까지 계속 회전
     while (digitalRead(SENSOR_MID_R) == LOW)
-        set_motor_speeds(100, -100);
+    {
+        set_motor_speeds(speed_turn_bwd, speed_turn_fwd);
+        delay(5);
+    }
 
-    car_stop();
-    delay(150);
+    car_brake();
+    Serial.println("== 중앙 센서 감지됨, 회전 종료 ==");
 
+    delay(150); // 정지 후 약간 안정화
+
+    // 3. 반대 방향으로 라인 재정렬
     while (digitalRead(SENSOR_MID_R) == HIGH)
-        set_motor_speeds(-100, 100);
+    {
+        set_motor_speeds(speed_turn_fwd, speed_turn_bwd);
+        delay(5);
+    }
 
     car_stop();
+    Serial.println("== 중앙 센서 미감지 → 정렬 완료, 직진 준비 완료 ==");
 }

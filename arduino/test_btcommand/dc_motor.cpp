@@ -93,8 +93,8 @@ void back_on(int speed)
 }
 
 void set_motor_speeds(int l_speed, int r_speed) {
-    analogWrite(R_IA, r_speed);
-    analogWrite(R_IB, 0);
-    analogWrite(L_IA, 0);
-    analogWrite(L_IB, l_speed);
-}
+        analogWrite(R_IA, r_speed);
+        analogWrite(R_IB, 0);
+        analogWrite(L_IA, 0);
+        analogWrite(L_IB, l_speed);
+    }

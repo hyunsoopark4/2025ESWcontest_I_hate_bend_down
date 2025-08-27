@@ -47,6 +47,16 @@ void loop()
         line_trace_torque();
         break;
 
+    case CMD_LEFT:
+        Serial.println("== 왼쪽 회전 명령 수신 ==");
+        turn_left();
+        break;
+
+    case CMD_RIGHT:
+        Serial.println("== 오른쪽 회전 명령 수신 ==");
+        turn_right();
+        break;
+
     case CMD_UNKNOWN:
 
         // 아무 입력 없으면 무시
