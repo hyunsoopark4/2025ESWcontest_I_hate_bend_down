@@ -2,12 +2,13 @@
 #include "bt_command.h"
 #include "servo_grip.h"
 #include "line_trace.h"
+#include "dc_motor.h"
 
 // 핀 정의
 const int SERVO_PIN = 2;
 
 // 집게 객체 생성
-ServoGrip gripper(SERVO_PIN, 80, 20);
+ServoGrip gripper(SERVO_PIN, 80, 15);
 
 void setup()
 {
@@ -55,6 +56,23 @@ void loop()
     case CMD_RIGHT:
         Serial.println("== 오른쪽 회전 명령 수신 ==");
         turn_right();
+        break;
+
+    case CMD_LEFT_TURBO:
+        Serial.println("== 왼쪽 터보 회전 명령 수신 ==");
+        turn_left(200, -60);
+        break;
+
+    case CMD_RIGHT_TURBO:
+        Serial.println("== 오른쪽 터보 회전 명령 수신 ==");
+        turn_right(200, -60 );
+        break;
+
+    case CMD_BACKWARD:
+        Serial.println("== 후진 명령 수신 ==");
+        back_on(150);
+        delay(500);
+        car_stop();
         break;
 
     case CMD_UNKNOWN:

@@ -16,6 +16,7 @@ char buffer[BUFFERSIZE];
 
 void bt_init() {
     mySerial.begin(9600);
+    mySerial.println("BT Ready");
 }
 
 int bt_checkCommand() {

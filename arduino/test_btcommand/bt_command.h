@@ -21,6 +21,9 @@
     X(FORWARD_TORQUE, "FT") \
     X(LEFT, "L") \
     X(RIGHT, "R") \
+    X(LEFT_TURBO, "LT") \
+    X(RIGHT_TURBO, "RT") \
+    X(BACKWARD, "B") \ 
 
 
 

@@ -4,6 +4,8 @@
 #include <Arduino.h>
 #include <Servo.h>
 
+#define SMOOTH_DELAY 30 // 서보 모터 이동 시 딜레이 (밀리초)
+
 class ServoGrip {
 public:
     ServoGrip(int pin, int openAngle = 0, int closeAngle = 180);

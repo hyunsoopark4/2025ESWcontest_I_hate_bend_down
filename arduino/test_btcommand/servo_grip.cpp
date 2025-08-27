@@ -5,7 +5,7 @@ ServoGrip::ServoGrip(int pin, int openAngle, int closeAngle)
 
 void ServoGrip::attach() {
     _servo.attach(_pin);
-    openGrip(); // 초기 상태는 열림
+    closeGrip(); // 초기 상태는 열림
 }
 
 void ServoGrip::openGrip() {
@@ -24,12 +24,12 @@ void ServoGrip::moveServoSmoothly(int targetAngle) {
     if (currentAngle < targetAngle) {
         for (int angle = currentAngle; angle <= targetAngle; angle++) {
             _servo.write(angle);
-            delay(15);
+            delay(SMOOTH_DELAY);
         }
     } else {
         for (int angle = currentAngle; angle >= targetAngle; angle--) {
             _servo.write(angle);
-            delay(15);
+            delay(SMOOTH_DELAY);
         }
     }
 }

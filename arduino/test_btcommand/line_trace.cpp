@@ -7,12 +7,6 @@
 #define SENSOR_MID_R 9
 #define SENSOR_RIGHT 10
 
-const int speed_fast = 170;
-const int speed_slow = 30;
-
-const int speed_turn_fwd = 100;`
-const int speed_turn_bwd = 0;
-
 
 bool lastState = false;
 
@@ -52,7 +46,7 @@ void line_trace()
     {
         center = digitalRead(SENSOR_MID_R);
 
-        set_motor_speeds(speed_slow, speed_fast); // 좌측 회전
+        set_motor_speeds(SPEED_SLOW, SPEED_FAST); // 좌측 회전
         delay(10);
     }
 
@@ -88,7 +82,7 @@ void line_trace_torque()
     {
         center = digitalRead(SENSOR_MID_R);
 
-        set_motor_speeds(speed_slow, speed_fast); // 좌측 회전
+        set_motor_speeds(SPEED_SLOW, SPEED_FAST); // 좌측 회전
         delay(10);
     }
 
@@ -115,14 +109,14 @@ void line_trace_torque()
     }
 }
 
-void turn_left()
+void turn_left(int speed_turn_fwd, int speed_turn_bwd)
 {
     Serial.println("== 왼쪽 회전 시작 ==");
 
     // 1. 왼쪽 센서 감지될 때까지 좌회전
     while (digitalRead(SENSOR_LEFT) == LOW)
     {
-        set_motor_speeds(speed_turn_fwd, speed_turn_bwd);
+        set_motor_speeds(speed_turn_bwd, speed_turn_fwd);
         delay(5);
     }
 
@@ -131,35 +125,40 @@ void turn_left()
     // 2. 중앙 센서 감지될 때까지 계속 회전
     while (digitalRead(SENSOR_MID_R) == LOW)
     {
-        set_motor_speeds(speed_turn_fwd, speed_turn_bwd);
+        set_motor_speeds(speed_turn_bwd, speed_turn_fwd);
         delay(5);
     }
 
     car_brake();
     Serial.println("== 중앙 센서 감지됨, 회전 종료 ==");
 
+    /*
+
     delay(150); // 정지 후 약간 안정화
 
     // 3. 반대 방향으로 라인 재정렬
     while (digitalRead(SENSOR_MID_R) == HIGH)
     {
-        set_motor_speeds(speed_turn_bwd, speed_turn_fwd);
+        set_motor_speeds(speed_turn_fwd, speed_turn_bwd);
         delay(5);
     }
 
     car_stop();
-    Serial.println("== 중앙 센서 미감지 → 정렬 완료, 직진 준비 완료 ==");
+    Serial.println("== 중앙 센서 미감지 → 정렬 완료, 직진 준비 완료 =="); 
+
+    */
+
 }
 
 // 오른쪽 회전은 좌우 속도만 반대로 하면 돼
-void turn_right()
+void turn_right(int speed_turn_fwd, int speed_turn_bwd)
 {
     Serial.println("== 오른쪽 회전 시작 ==");
 
     // 1. 오른쪽 센서 감지될 때까지 우회전
     while (digitalRead(SENSOR_RIGHT) == LOW)
     {
-        set_motor_speeds(speed_turn_bwd, speed_turn_fwd);
+        set_motor_speeds(speed_turn_fwd, speed_turn_bwd);
         delay(5);
     }
 
@@ -168,7 +167,7 @@ void turn_right()
     // 2. 중앙 센서 감지될 때까지 계속 회전
     while (digitalRead(SENSOR_MID_R) == LOW)
     {
-        set_motor_speeds(speed_turn_bwd, speed_turn_fwd);
+        set_motor_speeds(speed_turn_fwd, speed_turn_bwd);
         delay(5);
     }
 
@@ -180,7 +179,7 @@ void turn_right()
     // 3. 반대 방향으로 라인 재정렬
     while (digitalRead(SENSOR_MID_R) == HIGH)
     {
-        set_motor_speeds(speed_turn_fwd, speed_turn_bwd);
+        set_motor_speeds(speed_turn_bwd, speed_turn_fwd);
         delay(5);
     }
 

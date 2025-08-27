@@ -61,21 +61,18 @@ void car_brake(int time)
 //     return;
 // }
 
-void r_motor_on(int speed)
+void r_motor_reverse_on(int speed)
 {
-    analogWrite(R_IA, speed); // right motor (+ direction)
-    analogWrite(R_IB, 0);
-    analogWrite(L_IA, 0);
-    analogWrite(L_IB, 0);
+    analogWrite(R_IA, 0); // right motor (+ direction)
+    analogWrite(R_IB, speed);
 }
 
-void l_motor_on(int speed)
+void l_motor_reverse_on(int speed)
 {
-    analogWrite(R_IA, 0);
-    analogWrite(R_IB, 0);
-    analogWrite(L_IA, speed); // left motor (- direction)
-    analogWrite(L_IB, 0);
+    analogWrite(L_IA, 0); // left motor (- direction)
+    analogWrite(L_IB, speed);
 }
+
 void forward_on(int speed)
 {
     analogWrite(R_IA, speed);
@@ -92,9 +89,47 @@ void back_on(int speed)
     analogWrite(L_IB, 0);
 }
 
-void set_motor_speeds(int l_speed, int r_speed) {
-        analogWrite(R_IA, r_speed);
-        analogWrite(R_IB, 0);
+void set_motor_speeds(int l_speed, int r_speed)
+{
+    // // Right motor control
+    // if (r_speed >= 0) {
+    //     analogWrite(R_IA, r_speed);
+    //     analogWrite(R_IB, 0);
+    // } else {
+    //     analogWrite(R_IA, 0);
+    //     analogWrite(R_IB, -r_speed);  // Convert negative to positive for IB
+    // }
+    
+    // // Left motor control
+    // if (l_speed >= 0) {
+    //     analogWrite(L_IA, 0);
+    //     analogWrite(L_IB, l_speed);
+    // } else {
+    //     analogWrite(L_IA, -l_speed);  // Convert negative to positive for IA
+    //     analogWrite(L_IB, 0);
+    // }
+
+
+    // Right motor control
+    if (r_speed < 0) {
         analogWrite(L_IA, 0);
         analogWrite(L_IB, l_speed);
+        analogWrite(R_IA, 0);
+        analogWrite(R_IB, -r_speed);
+    } 
+    
+    else if (l_speed < 0) {
+        analogWrite(L_IA, -l_speed);
+        analogWrite(L_IB, 0);
+        analogWrite(R_IA, r_speed);
+        analogWrite(R_IB, 0);
     }
+
+    else {
+        analogWrite(L_IA, 0);
+        analogWrite(L_IB, l_speed);
+        analogWrite(R_IA, r_speed);
+        analogWrite(R_IB, 0);
+    }
+
+}
