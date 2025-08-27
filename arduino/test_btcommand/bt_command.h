@@ -18,6 +18,7 @@
     X(OPEN, "OPEN") \
     X(CLOSE, "CLOSE") \
     X(FORWARD, "FORWARD") \
+    X(FORWARD_TORQUE, "FT") \
 
 
 

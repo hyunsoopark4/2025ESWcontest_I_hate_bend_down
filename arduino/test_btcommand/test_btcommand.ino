@@ -7,7 +7,7 @@
 const int SERVO_PIN = 2;
 
 // 집게 객체 생성
-ServoGrip gripper(SERVO_PIN, 80, 10);
+ServoGrip gripper(SERVO_PIN, 80, 20);
 
 void setup()
 {
@@ -41,7 +41,12 @@ void loop()
         Serial.println("== 전진 명령 수신 ==");
         line_trace();
         break;
-        
+
+    case CMD_FORWARD_TORQUE:
+        Serial.println("== 전진 명령 수신 ==");
+        line_trace_torque();
+        break;
+
     case CMD_UNKNOWN:
 
         // 아무 입력 없으면 무시
