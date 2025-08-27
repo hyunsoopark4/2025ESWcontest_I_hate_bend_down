@@ -26,6 +26,9 @@ void loop() {
   // gripper.openGrip();
 
   line_trace();  // 외부 파일에서 정의한 라인트레이싱 함수 호출
+  line_trace();  // 외부 파일에서 정의한 라인트레이싱 함수 호출
+
+  delay(1000);
 
   // gripper.closeGrip();
 

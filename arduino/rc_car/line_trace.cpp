@@ -7,17 +7,28 @@
 #define SENSOR_MID_R 9
 #define SENSOR_RIGHT 10
 
-const int speed_fast = 150;
+const int speed_fast = 170;
 const int speed_slow = 30;
 
 bool lastState = false;
 
 void line_trace()
 {
+    int center = digitalRead(SENSOR_MID_R);
+
+    while(center == HIGH)
+    {
+        center = digitalRead(SENSOR_MID_R);
+
+        set_motor_speeds(speed_slow, speed_fast); // 좌측 회전
+        delay(10);
+    }
+
     // 교차점을 만날 때까지 계속 라인트레이싱
     while (true)
     {
-        int center = digitalRead(SENSOR_MID_R);
+        center = digitalRead(SENSOR_MID_R);
+
         int leftEdge = digitalRead(SENSOR_LEFT);
         int rightEdge = digitalRead(SENSOR_RIGHT);
         
@@ -27,24 +38,25 @@ void line_trace()
             forward_on(100);
             delay(100);
             car_stop();
-            delay(2000);
+            delay(500);
+
             break; // while 루프 종료
         }
 
         if (center == LOW)
         { // 라인 위
+            set_motor_speeds(speed_fast, speed_slow); // 우측 회전
             if (!lastState)
             {
-                set_motor_speeds(speed_fast, speed_slow); // 우측 회전
                 lastState = true;
                 Serial.println("== 감지: 우회전 ==");
             }
         }
         else
         { // 라인 벗어남
+            set_motor_speeds(speed_slow, speed_fast); // 좌측 회전
             if (lastState)
             {
-                set_motor_speeds(speed_slow, speed_fast); // 좌측 회전
                 lastState = false;
                 Serial.println("== 미감지: 좌회전 ==");
             }
@@ -53,19 +65,7 @@ void line_trace()
         delayMicroseconds(500); // 빠른 반응
     }
 }
-            }
-        }
 
-        delayMicroseconds(500); // 빠른 반응
-    }
-
-    // car_brake(100);
-    forward_on(100);
-    delay(100);
-    car_stop();
-    delay(2000);
-    return;
-}
 
 void line_trace_torque()
 {
