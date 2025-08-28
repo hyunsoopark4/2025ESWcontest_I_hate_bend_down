@@ -10,9 +10,9 @@
 
 // 버퍼 크기
 #define BUFFERSIZE 32
-#define LOOP_LATENCY 50
+#define LOOP_LATENCY 20  // 20ms
 
-// 명령어 정의 - 여기서만 수정하면 됨!
+// 명령어 정의
 #define COMMAND_LIST(X) \
     X(UNKNOWN, "UNKNOWN") \
     X(OPEN, "OPN") \
@@ -23,18 +23,21 @@
     X(RIGHT, "R") \
     X(LEFT_TURBO, "LT") \
     X(RIGHT_TURBO, "RT") \
-    X(BACKWARD, "B") \ 
+    X(BACKWARD, "B") \
+    X(STATUS, "S") \
+    X(MOVE_TO, "MOVE")
 
-
-
-// enum 자동 생성
-enum CommandType {
+// 명령어 enum 생성
 #define GENERATE_ENUM(ENUM, STRING) CMD_##ENUM,
+enum CommandEnum {
     COMMAND_LIST(GENERATE_ENUM)
-#undef GENERATE_ENUM
+    COMMAND_COUNT
 };
+#undef GENERATE_ENUM
 
 void bt_init();
-int bt_checkCommand();  // 수신 확인 및 명령 해석
+int bt_checkCommand();
+
+extern NeoSWSerial mySerial;
 
 #endif
