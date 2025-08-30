@@ -103,7 +103,7 @@ void line_trace_torque()
 
         if(leftEdge == HIGH || rightEdge == HIGH){
           crossed = true;
-          line_track(255,70);
+          line_track(SPEED_TORQUE_FAST, SPEED_TORQUE_SLOW);
           continue;
         }
         else if (crossed)
@@ -111,8 +111,8 @@ void line_trace_torque()
           car_stop();
           return;
         }
-        
-        line_track(255,70);
+
+        line_track(SPEED_TORQUE_FAST, SPEED_TORQUE_SLOW);
     }
 }
 

@@ -8,6 +8,9 @@
 #define SPEED_FAST 140
 #define SPEED_SLOW 20
 
+#define SPEED_TORQUE_FAST 255
+#define SPEED_TORQUE_SLOW 70
+
 // 함수 선언
 void line_trace();  // 일상 주행
 void line_trace_torque(); // 목표물 습득 후 토크감 있는 주행
