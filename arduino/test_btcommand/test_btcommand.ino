@@ -4,6 +4,7 @@
 #include "line_trace.h"
 #include "dc_motor.h"
 #include "navigation.h"  // navigation 헤더 추가
+#include "mpu.h"         // mpu 헤더 추가
 
 // 핀 정의
 const int SERVO_PIN = 8;
@@ -18,11 +19,20 @@ void setup()
     pinMode(10, INPUT); // SENSOR_RIGHT
 
     Serial.begin(9600);
-    Serial.println("Servo Grip Bluetooth Controller Started");
 
     gripper.attach();
+
+    Serial.println("== Initializing Bluetooth ==");
     bt_init();
     init_navigation();  // 네비게이션 초기화
+    
+    // MPU 초기화 및 캘리브레이션
+    Serial.println("== Initializing MPU ==");
+    mpu_init();
+    mpu_calibrate_yaw();
+
+    Serial.println("== System Initialized ==");
+
 }
 
 void loop()

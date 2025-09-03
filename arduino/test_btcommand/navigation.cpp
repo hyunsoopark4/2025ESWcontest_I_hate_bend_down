@@ -2,6 +2,7 @@
 #include "line_trace.h"
 #include "dc_motor.h"
 #include "bt_command.h"  // mySerial 사용을 위해 추가
+#include "mpu.h"         // mpu_get_yaw_difference 함수 사용을 위해 추가
 
 extern NeoSWSerial mySerial;  // bt_command.cpp에 정의된 mySerial 사용
 
@@ -131,9 +132,11 @@ void send_current_state() {
         default: direction_char = '?'; break;
     }
     
-    char state_msg[16];  // 고정 크기 버퍼 사용
-    snprintf(state_msg, sizeof(state_msg), "%d,%d,%c", 
-             current_state.x, current_state.y, direction_char);
+    float yaw_diff = mpu_get_yaw_difference();  // yaw 차이값 계산
+    
+    char state_msg[32];  // 버퍼 크기 증가 (yaw 값 포함)
+    snprintf(state_msg, sizeof(state_msg), "%d,%d,%c,%.1f", 
+             current_state.x, current_state.y, direction_char, yaw_diff);
     
     mySerial.println(state_msg);  // 블루투스로 전송
     Serial.println(state_msg);    // 시리얼 모니터로도 전송 (디버깅용)
