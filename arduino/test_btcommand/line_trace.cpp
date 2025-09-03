@@ -20,7 +20,7 @@ void line_track(int speed_fast, int speed_slow)
         if (!lastState)
         {
             lastState = true;
-            Serial.println("== 감지: 우회전 ==");
+            Serial.println("== Detected: Turn right ==");
         }
     }
     else
@@ -29,7 +29,7 @@ void line_track(int speed_fast, int speed_slow)
         if (lastState)
         {
             lastState = false;
-            Serial.println("== 미감지: 좌회전 ==");
+            Serial.println("== Not detected: Turn left ==");
         }
     }
 
@@ -118,7 +118,7 @@ void line_trace_torque()
 
 void turn_left(int speed_turn_fwd, int speed_turn_bwd)
 {
-    Serial.println("== 왼쪽 회전 시작 ==");
+    Serial.println("== Left turn started ==");
 
     // 왼쪽 바퀴는 역방향(속도 낮게), 오른쪽 바퀴는 정방향으로 회전
     int reverse_speed = -70;  // 역방향 속도를 직접 지정
@@ -130,7 +130,7 @@ void turn_left(int speed_turn_fwd, int speed_turn_bwd)
         delay(5);
     }
 
-    Serial.println("== 왼쪽 센서 감지됨, 중앙 센서 대기 ==");
+    Serial.println("== Left sensor detected, waiting for center sensor ==");
 
     // 2. 중앙 센서가 라인을 감지할 때까지 계속 회전
     while (digitalRead(SENSOR_MID_R) == LOW)
@@ -155,12 +155,12 @@ void turn_left(int speed_turn_fwd, int speed_turn_bwd)
     }
 
     car_stop();
-    Serial.println("== 회전 및 정렬 완료 ==");
+    Serial.println("== Turn and alignment completed ==");
 }
 
 void turn_right(int speed_turn_fwd, int speed_turn_bwd)
 {
-    Serial.println("== 오른쪽 회전 시작 ==");
+    Serial.println("== Right turn started ==");
 
     // 오른쪽 바퀴는 역방향(속도 낮게), 왼쪽 바퀴는 정방향으로 회전
     int reverse_speed = -70;  // 역방향 속도를 직접 지정
@@ -172,7 +172,7 @@ void turn_right(int speed_turn_fwd, int speed_turn_bwd)
         delay(5);
     }
 
-    Serial.println("== 오른쪽 센서 감지됨, 중앙 센서 대기 ==");
+    Serial.println("== Right sensor detected, waiting for center sensor ==");
 
     // 2. 중앙 센서 감지될 때까지 계속 회전
     while (digitalRead(SENSOR_MID_R) == LOW)
@@ -197,5 +197,5 @@ void turn_right(int speed_turn_fwd, int speed_turn_bwd)
     }
 
     car_stop();
-    Serial.println("== 회전 및 정렬 완료 ==");
+    Serial.println("== Turn and alignment completed ==");
 }

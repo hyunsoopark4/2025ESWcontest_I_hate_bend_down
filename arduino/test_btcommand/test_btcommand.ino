@@ -40,43 +40,43 @@ void loop()
         break;
 
     case CMD_FORWARD:
-        Serial.println("== 전진 명령 수신 ==");
+        Serial.println("== Forward command received ==");
         line_trace();
-        send_current_state();  // 현재 상태 전송
+        send_current_state();  // Send current state
         break;
 
     case CMD_FORWARD_TORQUE:
-        Serial.println("== 전진 명령 수신 ==");
+        Serial.println("== Forward command received ==");
         line_trace_torque();
-        send_current_state();  // 현재 상태 전송
+        send_current_state();  // Send current state
         break;
 
     case CMD_LEFT:
-        Serial.println("== 왼쪽 회전 명령 수신 ==");
+        Serial.println("== Left turn command received ==");
         turn_left();
         send_current_state();  // 현재 상태 전송
         break;
 
     case CMD_RIGHT:
-        Serial.println("== 오른쪽 회전 명령 수신 ==");
+        Serial.println("== Right turn command received ==");
         turn_right();
         send_current_state();  // 현재 상태 전송
         break;
 
     case CMD_LEFT_TURBO:
-        Serial.println("== 왼쪽 터보 회전 명령 수신 ==");
+        Serial.println("== Left turbo turn command received ==");
         turn_left(200, -60);
         send_current_state();  // 현재 상태 전송
         break;
 
     case CMD_RIGHT_TURBO:
-        Serial.println("== 오른쪽 터보 회전 명령 수신 ==");
+        Serial.println("== Right turbo turn command received ==");
         turn_right(200, -60);
         send_current_state();  // 현재 상태 전송
         break;
 
     case CMD_BACKWARD:
-        Serial.println("== 후진 명령 수신 ==");
+        Serial.println("== Backward command received ==");
         back_on(150);
         delay(500);
         car_stop();
@@ -88,7 +88,7 @@ void loop()
         break;
 
     case CMD_MOVE_TO:
-        Serial.println("== 좌표 이동 명령 수신 ==");
+        Serial.println("== Move to coordinate command received ==");
         // move_to_position은 자체적으로 현재 상태를 전송하므로
         // 추가 send_current_state() 호출이 필요 없음
         break;
