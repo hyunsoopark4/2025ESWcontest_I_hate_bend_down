@@ -3,6 +3,8 @@
 
 #include <Arduino.h>
 
+#define CALI_SAMPLE_COUNT 10
+
 // 전역 변수 선언
 extern float yaw_initial;
 

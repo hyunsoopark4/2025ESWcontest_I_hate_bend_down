@@ -5,6 +5,7 @@
 
 // 전역 변수 정의
 float yaw_initial = 0.0;
+float last_valid_yaw = 0.0;  // 마지막 유효한 yaw 값 저장
 
 // MPU6050 객체 및 관련 변수
 MPU6050 mpu;
@@ -58,7 +59,7 @@ void mpu_init() {
 
 // 현재 yaw 값을 읽어오는 내부 함수
 float getCurrentYaw() {
-    if (!dmpReady) return 0.0;
+    if (!dmpReady) return last_valid_yaw;
     
     // 인터럽트가 발생할 때까지 기다리거나, FIFO 버퍼가 꽉 찼으면 처리
     unsigned long startTime = millis();
@@ -66,7 +67,7 @@ float getCurrentYaw() {
         // 타임아웃 처리 (1초)
         if (millis() - startTime > 1000) {
             Serial.println(F("MPU read timeout"));
-            return 0.0;
+            return last_valid_yaw;
         }
     }
     
@@ -78,7 +79,7 @@ float getCurrentYaw() {
     // FIFO 오버플로우 확인
     if ((mpuIntStatus & 0x10) || fifoCount == 1024) {
         mpu.resetFIFO();
-        return 0.0;
+        return last_valid_yaw;
     } else if (mpuIntStatus & 0x02) {
         // FIFO 버퍼에서 패킷이 준비될 때까지 기다림
         while (fifoCount < packetSize) fifoCount = mpu.getFIFOCount();
@@ -92,11 +93,13 @@ float getCurrentYaw() {
         mpu.dmpGetGravity(&gravity, &q);
         mpu.dmpGetYawPitchRoll(ypr, &q, &gravity);
         
-        // 라디안을 각도로 변환하여 반환
-        return ypr[0] * 180.0 / M_PI;
+        // 라디안을 각도로 변환
+        float current_yaw = ypr[0] * 180.0 / M_PI;
+        last_valid_yaw = current_yaw;  // 유효한 값을 저장
+        return current_yaw;
     }
     
-    return 0.0;
+    return last_valid_yaw;
 }
 
 // 안정적인 yaw 값을 기다리고 yaw_initial에 저장
@@ -108,16 +111,15 @@ void mpu_calibrate_yaw() {
     
     Serial.println(F("Calibrating yaw... Please keep device stable"));
     
-    const int SAMPLE_COUNT = 10;     // 샘플 개수
     const float STABILITY_THRESHOLD = 0.05;  // 안정성 임계값 (도)
-    float samples[SAMPLE_COUNT];
+    float samples[CALI_SAMPLE_COUNT];
     int sampleIndex = 0;
     bool calibrated = false;
     
     while (!calibrated) {
         float currentYaw = getCurrentYaw();
         samples[sampleIndex] = currentYaw;
-        sampleIndex = (sampleIndex + 1) % SAMPLE_COUNT;
+        sampleIndex = (sampleIndex + 1) % CALI_SAMPLE_COUNT;
         
         // 충분한 샘플이 모이면 안정성 검사
         if (sampleIndex == 0) {  // 배열이 모두 채워졌을 때
@@ -126,12 +128,11 @@ void mpu_calibrate_yaw() {
             float max_val = samples[0];
             
             // 평균, 최소, 최대값 계산
-            for (int i = 0; i < SAMPLE_COUNT; i++) {
+            for (int i = 0; i < CALI_SAMPLE_COUNT; i++) {
                 if (samples[i] == 0.0) continue;
                 if (samples[i] < min_val) min_val = samples[i];
                 if (samples[i] > max_val) max_val = samples[i];
             }
-            Serial.println("");
             
             float range = max_val - min_val;
             
@@ -157,8 +158,13 @@ float mpu_get_yaw_difference() {
     if (!dmpReady) return 0.0;
     
     float currentYaw = getCurrentYaw();
+    // 오차 보정
+    while(abs(currentYaw - getCurrentYaw()) > 1.0) {
+        currentYaw = getCurrentYaw();
+    }
+
     float difference = currentYaw - yaw_initial;
-    
+
     // -180 ~ 180 범위로 정규화
     while (difference > 180.0) {
         difference -= 360.0;

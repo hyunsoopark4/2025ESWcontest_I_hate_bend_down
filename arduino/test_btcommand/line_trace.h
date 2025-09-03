@@ -18,6 +18,7 @@ void turn_left(int speed_turn_fwd = SPEED_FWD, int speed_turn_bwd = SPEED_BWD);
 void turn_right(int speed_turn_fwd = SPEED_FWD, int speed_turn_bwd = SPEED_BWD);
 // line_track의 매개변수에 기본값 지정
 void line_track(int speed_fast = SPEED_FAST, int speed_slow = SPEED_SLOW);
+void line_stabilize(int aim = 0);  // MPU를 활용한 방향 안정화 함수
 
 // 외부에서 사용할 수도 있도록 공개
 extern int node_count;  

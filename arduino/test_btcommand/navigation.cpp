@@ -133,10 +133,15 @@ void send_current_state() {
     }
     
     float yaw_diff = mpu_get_yaw_difference();  // yaw 차이값 계산
-    
+    Serial.print("Yaw difference: ");
+    Serial.println(yaw_diff);
+
+    // yaw_diff를 정수와 소수 부분으로 분리하여 출력
+    int yaw_int = (int)yaw_diff;
+
     char state_msg[32];  // 버퍼 크기 증가 (yaw 값 포함)
-    snprintf(state_msg, sizeof(state_msg), "%d,%d,%c,%.1f", 
-             current_state.x, current_state.y, direction_char, yaw_diff);
+    snprintf(state_msg, sizeof(state_msg), "%d,%d,%c,%d", 
+             current_state.x, current_state.y, direction_char, yaw_int);
     
     mySerial.println(state_msg);  // 블루투스로 전송
     Serial.println(state_msg);    // 시리얼 모니터로도 전송 (디버깅용)

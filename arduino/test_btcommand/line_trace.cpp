@@ -1,6 +1,8 @@
 #include <Arduino.h>
 #include "line_trace.h"
 #include "dc_motor.h" // set_motor_speeds 직접 사용
+#include "mpu.h"      // mpu_get_yaw_difference 함수 사용
+#include "navigation.h" // NORTH, EAST, SOUTH, WEST 정의 사용
 
 #define SENSOR_LEFT 7
 #define SENSOR_MID_L 8
@@ -73,6 +75,7 @@ void line_trace()
           
           car_stop();
           delay(100);  // 완전 정지를 위한 대기
+          line_stabilize();
           return;
         }
         
@@ -198,4 +201,83 @@ void turn_right(int speed_turn_fwd, int speed_turn_bwd)
 
     car_stop();
     Serial.println("== Turn and alignment completed ==");
+}
+
+// MPU를 활용한 방향 안정화 함수
+void line_stabilize(int aim) {
+    const float TOLERANCE = 2.5;  // 허용 오차 (도)
+    const int SLOW_SPEED = 115;    // 천천히 회전하는 속도
+
+    float current_yaw = mpu_get_yaw_difference();
+    float target_angle = 0.0;
+    
+    if (aim == 0) {
+        // 가장 가까운 90도 배수로 정렬 (0, 90, -90, 180/-180)
+        if (current_yaw >= -45 && current_yaw <= 45) {
+            target_angle = 0.0;
+        } else if (current_yaw > 45 && current_yaw <= 135) {
+            target_angle = 90.0;
+        } else if (current_yaw > 135 || current_yaw <= -135) {
+            target_angle = 180.0;
+        } else { // current_yaw < -45 && current_yaw > -135
+            target_angle = -90.0;
+        }
+    } else {
+        // navigation.h의 방향을 각도로 변환 (NORTH=0도 기준)
+        switch (aim) {
+            case TARGET_NORTH:          
+                target_angle = 0.0; break;
+            case TARGET_NORTH_EAST: 
+                target_angle = 45.0; break;
+            case TARGET_EAST:           
+                target_angle = 90.0; break;
+            case TARGET_SOUTH_EAST: 
+                target_angle = 135.0; break;
+            case TARGET_SOUTH:          
+                target_angle = 180.0; break;
+            case TARGET_SOUTH_WEST: 
+                target_angle = -135.0; break;
+            case TARGET_WEST:           
+                target_angle = -90.0; break;
+            case TARGET_NORTH_WEST: 
+                target_angle = -45.0; break;
+            default:             
+                target_angle = 0.0; break;
+        }
+    }
+    
+    Serial.print("== Stabilizing to angle: ");
+    Serial.println(target_angle);
+    
+    while (true) {
+        current_yaw = mpu_get_yaw_difference();
+        float angle_diff = target_angle - current_yaw;
+
+        // 각도 차이를 -180 ~ 180 범위로 정규화
+        while (angle_diff > 180.0) angle_diff -= 360.0;
+        while (angle_diff < -180.0) angle_diff += 360.0;
+
+        Serial.print("angle difference: ");
+        Serial.println(angle_diff);
+
+        // 목표 각도에 도달했는지 확인
+        if (abs(angle_diff) <= TOLERANCE) {
+            Serial.println("== Angle stabilization completed ==");
+            break;
+        }
+        
+        // 회전 방향 결정 및 실행
+        if (angle_diff > 0) {
+            // 시계 방향으로 회전 (오른쪽)
+            spin_right_on(SLOW_SPEED);
+            delay(50);
+            spin_left_on(OPT_SPEED);
+        } else {
+            // 반시계 방향으로 회전 (왼쪽)
+            spin_left_on(SLOW_SPEED);
+            delay(50);
+            spin_right_on(OPT_SPEED);
+        }
+        car_stop();
+    }
 }

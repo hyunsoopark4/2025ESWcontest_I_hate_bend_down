@@ -25,7 +25,7 @@
     X(RIGHT_TURBO, "RT") \
     X(BACKWARD, "B") \
     X(STATUS, "S") \
-    X(MOVE_TO, "MOVE")
+    X(MOVE_TO, "MOVE") \
 
 // 명령어 enum 생성
 #define GENERATE_ENUM(ENUM, STRING) CMD_##ENUM,
