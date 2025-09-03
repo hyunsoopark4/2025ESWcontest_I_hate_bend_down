@@ -6,7 +6,7 @@
 #include "navigation.h"  // navigation 헤더 추가
 
 // 핀 정의
-const int SERVO_PIN = 2;
+const int SERVO_PIN = 8;
 
 // 집게 객체 생성
 ServoGrip gripper(SERVO_PIN, 80, 15);

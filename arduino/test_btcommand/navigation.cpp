@@ -74,7 +74,9 @@ void navigate_to_target() {
 
 void move_to_position(int target_x, int target_y) {
     // 좌표 이동 시작 메시지
-    mySerial.println("Moving to: (" + String(target_x) + "," + String(target_y) + ")");
+    char msg[32];  // 고정 크기 버퍼 사용
+    snprintf(msg, sizeof(msg), "Moving to: (%d,%d)", target_x, target_y);
+    mySerial.println(msg);
     
     // 1단계: Y축 이동 (세로 방향)
     int dy = target_y - current_state.y;
@@ -120,17 +122,18 @@ void move_to_position(int target_x, int target_y) {
 }
 
 void send_current_state() {
-    String direction_str;
+    char direction_char;
     switch(current_state.direction) {
-        case NORTH: direction_str = "N"; break;
-        case EAST: direction_str = "E"; break;
-        case SOUTH: direction_str = "S"; break;
-        case WEST: direction_str = "W"; break;
+        case NORTH: direction_char = 'N'; break;
+        case EAST: direction_char = 'E'; break;
+        case SOUTH: direction_char = 'S'; break;
+        case WEST: direction_char = 'W'; break;
+        default: direction_char = '?'; break;
     }
     
-    String state_msg = String(current_state.x) + "," 
-                    + String(current_state.y) + "," 
-                    + direction_str;
+    char state_msg[16];  // 고정 크기 버퍼 사용
+    snprintf(state_msg, sizeof(state_msg), "%d,%d,%c", 
+             current_state.x, current_state.y, direction_char);
     
     mySerial.println(state_msg);  // 블루투스로 전송
     Serial.println(state_msg);    // 시리얼 모니터로도 전송 (디버깅용)

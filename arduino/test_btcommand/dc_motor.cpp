@@ -37,30 +37,6 @@ void car_brake(int time)
     car_stop();
 }
 
-// void turn_left(int duration)
-// {
-//     spin_left_on();
-//     delay(duration);
-//     car_stop();
-//     return;
-// }
-
-// void turn_right(int duration)
-// {
-//     spin_right_on();
-//     delay(duration);
-//     car_stop();
-//     return;
-// }
-
-// void turn_back(int duration)
-// {
-//     spin_right_on();
-//     delay(duration);
-//     car_stop();
-//     return;
-// }
-
 void r_motor_reverse_on(int speed)
 {
     analogWrite(R_IA, 0); // right motor (+ direction)
@@ -91,25 +67,6 @@ void back_on(int speed)
 
 void set_motor_speeds(int l_speed, int r_speed)
 {
-    // // Right motor control
-    // if (r_speed >= 0) {
-    //     analogWrite(R_IA, r_speed);
-    //     analogWrite(R_IB, 0);
-    // } else {
-    //     analogWrite(R_IA, 0);
-    //     analogWrite(R_IB, -r_speed);  // Convert negative to positive for IB
-    // }
-    
-    // // Left motor control
-    // if (l_speed >= 0) {
-    //     analogWrite(L_IA, 0);
-    //     analogWrite(L_IB, l_speed);
-    // } else {
-    //     analogWrite(L_IA, -l_speed);  // Convert negative to positive for IA
-    //     analogWrite(L_IB, 0);
-    // }
-
-
     // Right motor control
     if (r_speed < 0) {
         analogWrite(L_IA, 0);
@@ -117,19 +74,16 @@ void set_motor_speeds(int l_speed, int r_speed)
         analogWrite(R_IA, 0);
         analogWrite(R_IB, -r_speed);
     } 
-    
     else if (l_speed < 0) {
         analogWrite(L_IA, -l_speed);
         analogWrite(L_IB, 0);
         analogWrite(R_IA, r_speed);
         analogWrite(R_IB, 0);
     }
-
     else {
         analogWrite(L_IA, 0);
         analogWrite(L_IB, l_speed);
         analogWrite(R_IA, r_speed);
         analogWrite(R_IB, 0);
     }
-
 }

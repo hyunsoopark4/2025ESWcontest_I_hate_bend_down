@@ -54,8 +54,9 @@ int bt_checkCommand()
         int x, y;
         parse_coordinates(buffer, &x, &y);
         if (x >= 0 && y >= 0) {
-            String msg = "Moving to coordinate: (" + String(x) + "," + String(y) + ")";
-            send_movement_msg(msg.c_str());
+            char msg[64];  // 고정 크기 버퍼 사용
+            snprintf(msg, sizeof(msg), "Moving to coordinate: (%d,%d)", x, y);
+            send_movement_msg(msg);
             
             // Y축 먼저 이동 (북/남)
             while(current_state.y != y) {
