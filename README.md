@@ -1,2 +1,5 @@
-# 2025ESWcontest_unnamed
-레포지토리명 추후 수정 예정
+# 2025ESWcontest_I_hate_bend_down
+
+
+추후 프로젝트 설명 추가 예정
+

@@ -5,8 +5,8 @@
 #define SPEED_BWD -30
 
 //170 , 30 low battery
-#define SPEED_FAST 140
-#define SPEED_SLOW 20
+#define SPEED_FAST 170
+#define SPEED_SLOW 50
 
 #define SPEED_TORQUE_FAST 255
 #define SPEED_TORQUE_SLOW 70

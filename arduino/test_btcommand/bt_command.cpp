@@ -57,85 +57,91 @@ int bt_checkCommand()
             String msg = "Moving to coordinate: (" + String(x) + "," + String(y) + ")";
             send_movement_msg(msg.c_str());
             
-            // x축 이동
+            // Y축 먼저 이동 (북/남)
+            while(current_state.y != y) {
+                if(current_state.y < y) {  // 북쪽으로 이동
+                    if(current_state.direction != NORTH) {
+                        send_movement_msg("Rotating to NORTH");
+                        // 최소한의 회전으로 북쪽 방향 맞추기
+                        if(current_state.direction == EAST) {
+                            turn_left();
+                            update_direction(true);
+                        } else if(current_state.direction == WEST) {
+                            turn_right();
+                            update_direction(false);
+                        } else if(current_state.direction == SOUTH) {
+                            turn_right();
+                            update_direction(false);
+                            line_trace();  // 회전 후 반드시 직진
+                            turn_right();
+                            update_direction(false);
+                        }
+                    }
+                    send_movement_msg("Moving NORTH");
+                    line_trace();
+                    update_position();
+                } else {  // 남쪽으로 이동
+                    if(current_state.direction != SOUTH) {
+                        send_movement_msg("Rotating to SOUTH");
+                        // 최소한의 회전으로 남쪽 방향 맞추기
+                        if(current_state.direction == EAST) {
+                            turn_right();
+                            update_direction(false);
+                        } else if(current_state.direction == WEST) {
+                            turn_left();
+                            update_direction(true);
+                        } else if(current_state.direction == NORTH) {
+                            turn_right();
+                            update_direction(false);
+                            line_trace();  // 회전 후 반드시 직진
+                            turn_right();
+                            update_direction(false);
+                        }
+                    }
+                    send_movement_msg("Moving SOUTH");
+                    line_trace();
+                    update_position();
+                }
+            }
+            
+            // X축 이동 (동/서)
             while(current_state.x != x) {
-                if(current_state.x < x) {
+                if(current_state.x < x) {  // 동쪽으로 이동
                     if(current_state.direction != EAST) {
                         send_movement_msg("Rotating to EAST");
                         turn_right();
                         update_direction(false);
-                        send_movement_msg("Moving forward to align");
-                        line_trace();
-                        update_position();
-                    } else {
-                        send_movement_msg("Moving EAST");
-                        line_trace();
-                        update_position();
                     }
-                } else {
+                    send_movement_msg("Moving EAST");
+                    line_trace();
+                    update_position();
+                } else {  // 서쪽으로 이동
                     if(current_state.direction != WEST) {
                         send_movement_msg("Rotating to WEST");
                         turn_left();
                         update_direction(true);
-                        send_movement_msg("Moving forward to align");
-                        line_trace();
-                        update_position();
-                    } else {
-                        send_movement_msg("Moving WEST");
-                        line_trace();
-                        update_position();
                     }
+                    send_movement_msg("Moving WEST");
+                    line_trace();
+                    update_position();
                 }
             }
             
-            // y축 이동
-            while(current_state.y != y) {
-                if(current_state.y < y) {
-                    if(current_state.direction != NORTH) {
-                        send_movement_msg("Rotating to NORTH");
-                        if(current_state.direction == SOUTH) {
-                            turn_right();
-                            turn_right();
-                            update_direction(false);
-                            update_direction(false);
-                        } else if(current_state.direction == EAST) {
-                            turn_left();
-                            update_direction(true);
-                        } else {
-                            turn_right();
-                            update_direction(false);
-                        }
-                        send_movement_msg("Moving forward to align");
-                        line_trace();
-                        update_position();
-                    } else {
-                        send_movement_msg("Moving NORTH");
-                        line_trace();
-                        update_position();
-                    }
-                } else {
-                    if(current_state.direction != SOUTH) {
-                        send_movement_msg("Rotating to SOUTH");
-                        if(current_state.direction == NORTH) {
-                            turn_right();
-                            turn_right();
-                            update_direction(false);
-                            update_direction(false);
-                        } else if(current_state.direction == EAST) {
-                            turn_right();
-                            update_direction(false);
-                        } else {
-                            turn_left();
-                            update_direction(true);
-                        }
-                        send_movement_msg("Moving forward to align");
-                        line_trace();
-                        update_position();
-                    } else {
-                        send_movement_msg("Moving SOUTH");
-                        line_trace();
-                        update_position();
-                    }
+            // 마지막으로 북쪽 방향으로 정렬
+            if(current_state.direction != NORTH) {
+                send_movement_msg("Final alignment to NORTH");
+                if(current_state.direction == SOUTH) {
+                    turn_right();
+                    update_direction(false);
+                    line_trace();  // 회전 후 반드시 직진
+                    turn_right();
+                    update_direction(false);
+                } else if(current_state.direction == EAST) {
+                    turn_left();
+                    update_direction(true);
+                } else if(current_state.direction == WEST) {
+                    turn_right();
+                    update_direction(false);
                 }
             }
             
