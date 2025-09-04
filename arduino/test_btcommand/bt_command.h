@@ -23,7 +23,10 @@
     X(RIGHT, "R") \
     X(LEFT_TURBO, "LT") \
     X(RIGHT_TURBO, "RT") \
+    X(LEFT_TORQUE, "TL") \
+    X(RIGHT_TORQUE, "TR") \
     X(BACKWARD, "B") \
+    X(FF, "FF") \
     X(STATUS, "S") \
     X(MOVE_TO, "MOVE")
 

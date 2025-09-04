@@ -6,20 +6,20 @@
 #include <Arduino.h>
 #include "dc_motor.h"
 
-void spin_left_on(int speed)
+void spin_left_on(int l_speed,int r_speed)
 {
-    analogWrite(R_IA, speed); // right motor in forward direction
+    analogWrite(R_IA, r_speed); // right motor in forward direction
     analogWrite(R_IB, 0);
-    analogWrite(L_IA, speed); // left motor in backward direction
+    analogWrite(L_IA, l_speed); // left motor in backward direction
     analogWrite(L_IB, 0);
 }
 
-void spin_right_on(int speed)
+void spin_right_on(int l_speed,int r_speed)
 {
     analogWrite(R_IA, 0);
-    analogWrite(R_IB, speed);
+    analogWrite(R_IB, r_speed);
     analogWrite(L_IA, 0);
-    analogWrite(L_IB, speed);
+    analogWrite(L_IB, l_speed);
 }
 
 void car_stop()

@@ -51,10 +51,19 @@ int bt_checkCommand()
 
     // 좌표 입력 확인
     if (buffer[0] == '(') {
+        // 토크 모드 확인 ('T' 접미사)
+        bool isTorqueMode = false;
+        int len = strlen(buffer);
+        if (len > 0 && buffer[len - 1] == 'T') {
+            isTorqueMode = true;
+            buffer[len - 1] = '\0'; // T 제거하여 좌표만 파싱
+        }
+
         int x, y;
         parse_coordinates(buffer, &x, &y);
         if (x >= 0 && y >= 0) {
             String msg = "Moving to coordinate: (" + String(x) + "," + String(y) + ")";
+            if(isTorqueMode) msg += " [Torque Mode]";
             send_movement_msg(msg.c_str());
             
             // Y축 먼저 이동 (북/남)
@@ -62,44 +71,42 @@ int bt_checkCommand()
                 if(current_state.y < y) {  // 북쪽으로 이동
                     if(current_state.direction != NORTH) {
                         send_movement_msg("Rotating to NORTH");
-                        // 최소한의 회전으로 북쪽 방향 맞추기
                         if(current_state.direction == EAST) {
-                            turn_left();
+                            isTorqueMode ? torque_turn_left() : turn_left();
                             update_direction(true);
                         } else if(current_state.direction == WEST) {
-                            turn_right();
+                            isTorqueMode ? torque_turn_right() : turn_right();
                             update_direction(false);
                         } else if(current_state.direction == SOUTH) {
-                            turn_right();
+                            isTorqueMode ? torque_turn_right() : turn_right();
                             update_direction(false);
-                            line_trace();  // 회전 후 반드시 직진
-                            turn_right();
+                            isTorqueMode ? line_trace_torque() : line_trace();
+                            isTorqueMode ? torque_turn_right() : turn_right();
                             update_direction(false);
                         }
                     }
                     send_movement_msg("Moving NORTH");
-                    line_trace();
+                    isTorqueMode ? line_trace_torque() : line_trace();
                     update_position();
                 } else {  // 남쪽으로 이동
                     if(current_state.direction != SOUTH) {
                         send_movement_msg("Rotating to SOUTH");
-                        // 최소한의 회전으로 남쪽 방향 맞추기
                         if(current_state.direction == EAST) {
-                            turn_right();
+                            isTorqueMode ? torque_turn_right() : turn_right();
                             update_direction(false);
                         } else if(current_state.direction == WEST) {
-                            turn_left();
+                            isTorqueMode ? torque_turn_left() : turn_left();
                             update_direction(true);
                         } else if(current_state.direction == NORTH) {
-                            turn_right();
+                            isTorqueMode ? torque_turn_right() : turn_right();
                             update_direction(false);
-                            line_trace();  // 회전 후 반드시 직진
-                            turn_right();
+                            isTorqueMode ? line_trace_torque() : line_trace();
+                            isTorqueMode ? torque_turn_right() : turn_right();
                             update_direction(false);
                         }
                     }
                     send_movement_msg("Moving SOUTH");
-                    line_trace();
+                    isTorqueMode ? line_trace_torque() : line_trace();
                     update_position();
                 }
             }
@@ -109,20 +116,20 @@ int bt_checkCommand()
                 if(current_state.x < x) {  // 동쪽으로 이동
                     if(current_state.direction != EAST) {
                         send_movement_msg("Rotating to EAST");
-                        turn_right();
+                        isTorqueMode ? torque_turn_right() : turn_right();
                         update_direction(false);
                     }
                     send_movement_msg("Moving EAST");
-                    line_trace();
+                    isTorqueMode ? line_trace_torque() : line_trace();
                     update_position();
                 } else {  // 서쪽으로 이동
                     if(current_state.direction != WEST) {
                         send_movement_msg("Rotating to WEST");
-                        turn_left();
+                        isTorqueMode ? torque_turn_left() : turn_left();
                         update_direction(true);
                     }
                     send_movement_msg("Moving WEST");
-                    line_trace();
+                    isTorqueMode ? line_trace_torque() : line_trace();
                     update_position();
                 }
             }
@@ -131,16 +138,16 @@ int bt_checkCommand()
             if(current_state.direction != NORTH) {
                 send_movement_msg("Final alignment to NORTH");
                 if(current_state.direction == SOUTH) {
-                    turn_right();
+                    isTorqueMode ? torque_turn_right() : turn_right();
                     update_direction(false);
-                    line_trace();  // 회전 후 반드시 직진
-                    turn_right();
+                    isTorqueMode ? line_trace_torque() : line_trace();
+                    isTorqueMode ? torque_turn_right() : turn_right();
                     update_direction(false);
                 } else if(current_state.direction == EAST) {
-                    turn_left();
+                    isTorqueMode ? torque_turn_left() : turn_left();
                     update_direction(true);
                 } else if(current_state.direction == WEST) {
-                    turn_right();
+                    isTorqueMode ? torque_turn_right() : turn_right();
                     update_direction(false);
                 }
             }
