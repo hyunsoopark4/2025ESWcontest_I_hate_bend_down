@@ -1,135 +1,69 @@
-// DC모터
-#define R_IA 6 // Right Motor IA (must be PWM output)
-#define R_IB 11
-#define L_IA 3 // Left Motor IA (must be PWM output)
-#define L_IB 5
-#include <Arduino.h>
 #include "dc_motor.h"
 
-void spin_left_on(int l_speed,int r_speed)
-{
-    analogWrite(R_IA, r_speed); // right motor in forward direction
-    analogWrite(R_IB, 0);
-    analogWrite(L_IA, l_speed); // left motor in backward direction
-    analogWrite(L_IB, 0);
+// Private helper function to control a single motor
+// speed > 0: forward, speed < 0: backward, speed == 0: stop
+void control_motor(int pin_ia, int pin_ib, int speed) {
+    if (speed > 0) {
+        analogWrite(pin_ia, speed);
+        analogWrite(pin_ib, 0);
+    } else if (speed < 0) {
+        analogWrite(pin_ia, 0);
+        analogWrite(pin_ib, -speed); // Use absolute value for speed
+    } else {
+        analogWrite(pin_ia, 0);
+        analogWrite(pin_ib, 0);
+    }
 }
 
-void spin_right_on(int l_speed,int r_speed)
-{
-    analogWrite(R_IA, 0);
-    analogWrite(R_IB, r_speed);
-    analogWrite(L_IA, 0);
-    analogWrite(L_IB, l_speed);
-}
-
-void car_stop()
-{
-    analogWrite(R_IA, 0);
-    analogWrite(R_IB, 0);
-    analogWrite(L_IA, 0);
-    analogWrite(L_IB, 0);
-}
-
-void car_brake(int time)
-{
-    back_on(OPT_SPEED / 2);
-    delay(time);
-    car_stop();
-}
-
-// void turn_left(int duration)
-// {
-//     spin_left_on();
-//     delay(duration);
-//     car_stop();
-//     return;
-// }
-
-// void turn_right(int duration)
-// {
-//     spin_right_on();
-//     delay(duration);
-//     car_stop();
-//     return;
-// }
-
-// void turn_back(int duration)
-// {
-//     spin_right_on();
-//     delay(duration);
-//     car_stop();
-//     return;
-// }
-
-void r_motor_reverse_on(int speed)
-{
-    analogWrite(R_IA, 0); // right motor (+ direction)
-    analogWrite(R_IB, speed);
-}
-
-void l_motor_reverse_on(int speed)
-{
-    analogWrite(L_IA, 0); // left motor (- direction)
-    analogWrite(L_IB, speed);
-}
-
-void forward_on(int speed)
-{
-    analogWrite(R_IA, speed);
-    analogWrite(R_IB, 0);
-    analogWrite(L_IA, 0);
-    analogWrite(L_IB, speed);
-}
-
-void back_on(int speed)
-{
-    analogWrite(R_IA, 0);
-    analogWrite(R_IB, speed);
-    analogWrite(L_IA, speed);
-    analogWrite(L_IB, 0);
-}
-
+// Sets the speed for the left and right sides of the 4WD robot.
 void set_motor_speeds(int l_speed, int r_speed)
 {
-    // // Right motor control
-    // if (r_speed >= 0) {
-    //     analogWrite(R_IA, r_speed);
-    //     analogWrite(R_IB, 0);
-    // } else {
-    //     analogWrite(R_IA, 0);
-    //     analogWrite(R_IB, -r_speed);  // Convert negative to positive for IB
-    // }
-    
-    // // Left motor control
-    // if (l_speed >= 0) {
-    //     analogWrite(L_IA, 0);
-    //     analogWrite(L_IB, l_speed);
-    // } else {
-    //     analogWrite(L_IA, -l_speed);  // Convert negative to positive for IA
-    //     analogWrite(L_IB, 0);
-    // }
+    // Control left side motors
+    control_motor(L_IA_F, L_IB_F, l_speed); // Front-Left
+    control_motor(L_IA_R, L_IB_R, l_speed); // Rear-Left
 
+    // Control right side motors
+    control_motor(R_IA_F, R_IB_F, r_speed); // Front-Right
+    control_motor(R_IA_R, R_IB_R, r_speed); // Rear-Right
+}
 
-    // Right motor control
-    if (r_speed < 0) {
-        analogWrite(L_IA, 0);
-        analogWrite(L_IB, l_speed);
-        analogWrite(R_IA, 0);
-        analogWrite(R_IB, -r_speed);
-    } 
-    
-    else if (l_speed < 0) {
-        analogWrite(L_IA, -l_speed);
-        analogWrite(L_IB, 0);
-        analogWrite(R_IA, r_speed);
-        analogWrite(R_IB, 0);
-    }
+// Move forward with 4WD
+void forward_on(int speed)
+{
+    set_motor_speeds(speed, speed);
+}
 
-    else {
-        analogWrite(L_IA, 0);
-        analogWrite(L_IB, l_speed);
-        analogWrite(R_IA, r_speed);
-        analogWrite(R_IB, 0);
-    }
+// Move backward with 4WD
+void back_on(int speed)
+{
+    set_motor_speeds(-speed, -speed);
+}
 
+// Spin left on the spot with 4WD
+void spin_left_on(int speed)
+{
+    // Left motors backward, Right motors forward
+    set_motor_speeds(-speed, speed);
+}
+
+// Spin right on the spot with 4WD
+void spin_right_on(int speed)
+{
+    // Right motors backward, Left motors forward
+    set_motor_speeds(speed, -speed);
+}
+
+// Stop all 4 motors
+void car_stop()
+{
+    set_motor_speeds(0, 0);
+}
+
+// Brake all 4 motors by applying a short reverse pulse
+void car_brake(int time)
+{
+    // Speeds are inverted for a moment
+    set_motor_speeds(-OPT_SPEED / 2, -OPT_SPEED / 2);
+    delay(time);
+    car_stop();
 }
