@@ -33,8 +33,8 @@ void turn_right();
 void line_track(int speed_fast = SPEED_FAST, int speed_slow = SPEED_SLOW);
 
 // 토크 회전 함수 추가
-void torque_turn_left(int speed_turn_fwd = SPEED_TURN_TORQUE_FWD, int speed_turn_bwd = SPEED_TURN_TORQUE_BWD);
-void torque_turn_right(int speed_turn_fwd = SPEED_TURN_TORQUE_FWD, int speed_turn_bwd = SPEED_TURN_TORQUE_BWD);
+void torque_turn_left();
+void torque_turn_right();
 
 // 외부에서 사용할 수도 있도록 공개
 extern int node_count;  
