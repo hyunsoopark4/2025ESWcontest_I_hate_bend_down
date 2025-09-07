@@ -2,305 +2,244 @@
 #include "line_trace.h"
 #include "dc_motor.h" // set_motor_speeds 직접 사용
 
-#define SENSOR_LEFT 7
-#define SENSOR_MID_L 8
-#define SENSOR_MID_R 9
-#define SENSOR_RIGHT 10
+void line_trace_init() {
+    pinMode(SENSOR_LEFT, INPUT);
+    pinMode(SENSOR_MID_L, INPUT);
+    pinMode(SENSOR_MID_R, INPUT);
+    pinMode(SENSOR_RIGHT, INPUT);
+}
 
 bool lastState = false;
 
+// Proportional control line tracking using the two middle sensors
 void line_track(int speed_fast, int speed_slow)
 {
-    int center = digitalRead(SENSOR_MID_R);
+    bool mid_l_detected = (digitalRead(SENSOR_MID_L) == LINE_DETECTED);
+    bool mid_r_detected = (digitalRead(SENSOR_MID_R) == LINE_DETECTED);
 
-    if (center == LOW)
-    {                                             // 라인 위
-        set_motor_speeds(speed_fast, speed_slow); // 우측 회전
-        if (!lastState)
-        {
-            lastState = true;
-            Serial.println("== 감지: 우회전 ==");
-        }
+    if (mid_l_detected && mid_r_detected) {
+        // State: [X, 1, 1, X] -> Perfect center
+        set_motor_speeds(speed_fast, speed_fast);
+    } else if (mid_l_detected && !mid_r_detected) {
+        // State: [X, 1, 0, X] -> Slightly left of center, steer right
+        set_motor_speeds(speed_fast, speed_slow);
+    } else if (!mid_l_detected && mid_r_detected) {
+        // State: [X, 0, 1, X] -> Slightly right of center, steer left
+        set_motor_speeds(speed_slow, speed_fast);
+    } else {
+        // State: [X, 0, 0, X] -> Line lost between middle sensors
+        // Action: Stop for now. A search routine could be added here later.
+        car_stop();
     }
-    else
-    {                                             // 라인 벗어남
-        set_motor_speeds(speed_slow, speed_fast); // 좌측 회전
-        if (lastState)
-        {
-            lastState = false;
-            Serial.println("== 미감지: 좌회전 ==");
-        }
-    }
-
-    delayMicroseconds(500); // 빠른 반응
 }
 
+// Moves the robot along the line until an intersection is detected by outer sensors.
 void line_trace()
 {
-    int center = digitalRead(SENSOR_MID_R);
-    bool crossed = false;
-    bool stabilizing = false;
-
-    int leftEdge = digitalRead(SENSOR_LEFT);
-    int rightEdge = digitalRead(SENSOR_RIGHT);
-
-    while (leftEdge == HIGH || rightEdge == HIGH)
-    {
-        center = digitalRead(SENSOR_MID_R);
-        line_track(SPEED_FAST, SPEED_SLOW);
-        delay(1);
-        leftEdge = digitalRead(SENSOR_LEFT);
-        rightEdge = digitalRead(SENSOR_RIGHT);
-    }
-
-    // 처음 라인 찾기
-    while (center == HIGH)
-    {
-        center = digitalRead(SENSOR_MID_R);
-        line_track(SPEED_FAST, SPEED_SLOW);
-        delay(1);
-    }
-
-    // 교차점을 만날 때까지 계속 라인트레이싱
     while (true)
     {
-        int leftEdge = digitalRead(SENSOR_LEFT);
-        int rightEdge = digitalRead(SENSOR_RIGHT);
+        // 1. Follow the line for a small step using the middle sensors.
+        line_track();
 
-        if (leftEdge == HIGH || rightEdge == HIGH)
+        // 2. Check the outer sensors for an intersection.
+        bool left_edge_detected = (digitalRead(SENSOR_LEFT) == LINE_DETECTED);
+        bool right_edge_detected = (digitalRead(SENSOR_RIGHT) == LINE_DETECTED);
+
+        if (left_edge_detected || right_edge_detected)
         {
-            for (int i = 0; i < 20; i++)
-            {                                           // 약 50ms 동안 추가 라인트레이싱
-                line_track(SPEED_SLOW, SPEED_SLOW / 2); // 매우 느린 속도로
-                delay(5);
-            }
-            if (leftEdge != digitalRead(SENSOR_LEFT) && rightEdge != digitalRead(SENSOR_RIGHT))
-                continue;
-
-            // 교차점 감지
-            crossed = true;
-
-            // 급정지로 위치 안정화
-            car_brake(200);
-            delay(300); // 안정화를 위한 대기 시간
-
-            // 마지막으로 살짝 더 라인트레이싱
-            // for(int i = 0; i < 300; i++) {  // 약 50ms 동안 추가 라인트레이싱
-            //     line_track(SPEED_FAST , SPEED_SLOW);  // 매우 느린 속도로
-            //     delay(1);
-            // }
-
-            // car_stop();
-            // delay(100);  // 완전 정지를 위한 대기
+            // 3. Intersection detected. Stop the robot and exit the function.
+            car_brake(150); // Apply brake for a firm stop
+            delay(200);     // Wait for the robot to settle
             return;
         }
 
-        // 교차점 감지 전까지는 일반 라인트레이싱
-        line_track(SPEED_FAST, SPEED_SLOW);
+        // A small delay to prevent the loop from running too fast and to allow for sensor reading stability.
+        delay(1);
     }
 }
+
+void turn_left()
+{
+    Serial.println(F("== New Turn Left Sequence Initiated =="));
+
+    // Stage 1: Pre-Alignment on the current line for stability.
+    Serial.println(F("1. Aligning on current line..."));
+    for (int i = 0; i < 100; i++) {
+        line_track();
+        delay(1);
+    }
+    car_brake(100);
+    delay(100);
+
+    // Stage 2: Move forward to position the robot's pivot point in the center of the intersection.
+    // Serial.println(F("2. Moving to intersection center..."));
+    // forward_on();
+    // delay(MOVE_TO_CENTER_DURATION); // This constant is in dc_motor.h and needs tuning.
+
+    // Stage 3: Pivot turn using multiple sensors to find the new line.
+    Serial.println(F("3a. Pivoting left to find new line (outer sensor)..."));
+    spin_left_on();
+    while (digitalRead(SENSOR_LEFT) != LINE_DETECTED) {
+        delay(1);
+    }
+
+    Serial.println(F("3b. ...fine-tuning (mid-left sensor)..."));
+    while (digitalRead(SENSOR_MID_L) != LINE_DETECTED) {
+        delay(1);
+    }
+
+    Serial.println(F("3c. ...slowing down (mid-right sensor)..."));
+    spin_left_on(TURN_SPEED_SLOW);
+    while (digitalRead(SENSOR_MID_R) != LINE_DETECTED) {
+        delay(1);
+    }
+
+    // Stage 4: Stop and stabilize.
+    Serial.println(F("4. Turn complete. Final stop."));
+    car_brake(150);
+    delay(100);
+}
+
+void turn_right()
+{
+    Serial.println(F("== New Turn Right Sequence Initiated =="));
+
+    // Stage 1: Pre-Alignment on the current line for stability.
+    Serial.println(F("1. Aligning on current line..."));
+    for (int i = 0; i < 100; i++) {
+        line_track();
+        delay(1);
+    }
+    car_brake(100);
+    delay(200);
+
+    // Stage 2: Move forward to position the robot's pivot point in the center of the intersection.
+    // Serial.println(F("2. Moving to intersection center..."));
+    // forward_on();
+    // delay(MOVE_TO_CENTER_DURATION); // This constant is in dc_motor.h and needs tuning.
+
+    // Stage 3: Pivot turn using multiple sensors to find the new line.
+    Serial.println(F("3a. Pivoting right to find new line (outer sensor)..."));
+    spin_right_on();
+    while (digitalRead(SENSOR_RIGHT) != LINE_DETECTED) {
+        delay(1);
+    }
+
+    Serial.println(F("3b. ...fine-tuning (mid-right sensor)..."));
+    while (digitalRead(SENSOR_MID_R) != LINE_DETECTED) {
+        delay(1);
+    }
+
+    Serial.println(F("3c. ...slowing down (mid-left sensor)..."));
+    spin_right_on(TURN_SPEED_SLOW);
+    while (digitalRead(SENSOR_MID_L) != LINE_DETECTED) {
+        delay(1);
+    }
+
+    // Stage 4: Stop and stabilize.
+    Serial.println(F("4. Turn complete. Final stop."));
+    car_brake(150);
+    delay(100);
+}
+
+
+// --- Torque Mode Functions ---
+// The logic is identical to the standard functions but uses higher torque speed constants.
 
 void line_trace_torque()
 {
-    int center = digitalRead(SENSOR_MID_R);
-    bool crossed = false;
-
-    while (center == HIGH)
-    {
-        center = digitalRead(SENSOR_MID_R);
-
-        set_motor_speeds(SPEED_SLOW, SPEED_FAST); // 좌측 회전
-        delay(10);
-    }
-
-    // 교차점을 만날 때까지 계속 라인트레이싱
     while (true)
     {
-        int leftEdge = digitalRead(SENSOR_LEFT);
-        int rightEdge = digitalRead(SENSOR_RIGHT);
+        // 1. Follow the line with higher torque speeds.
+        line_track(SPEED_TORQUE_FAST, SPEED_TORQUE_SLOW);
 
-        // 교차점 감지 시 루프 종료
+        // 2. Check the outer sensors for an intersection.
+        bool left_edge_detected = (digitalRead(SENSOR_LEFT) == LINE_DETECTED);
+        bool right_edge_detected = (digitalRead(SENSOR_RIGHT) == LINE_DETECTED);
 
-        if (leftEdge == HIGH || rightEdge == HIGH)
+        if (left_edge_detected || right_edge_detected)
         {
-            crossed = true;
-            line_track(SPEED_TORQUE_FAST, SPEED_TORQUE_SLOW);
-            continue;
-        }
-        else if (crossed)
-        {
-            car_stop();
+            // 3. Intersection detected. Stop the robot and exit.
+            car_brake(150);
+            delay(100);
             return;
         }
+        delay(1);
+    }
+}
 
+void torque_turn_left()
+{
+    Serial.println(F("== Torque Turn Left Sequence Initiated =="));
+
+    // Stage 1: Pre-Alignment
+    Serial.println(F("1. Aligning on current line (torque)..."));
+    for (int i = 0; i < 75; i++) { // Align for a bit longer due to higher momentum
         line_track(SPEED_TORQUE_FAST, SPEED_TORQUE_SLOW);
-    }
-}
-
-void turn_left(int speed_turn_fwd, int speed_turn_bwd)
-{
-    Serial.println("== 왼쪽 회전 시작 ==");
-
-    // 왼쪽 바퀴는 역방향(속도 낮게), 오른쪽 바퀴는 정방향으로 회전
-    int reverse_speed = -70; // 역방향 속도를 직접 지정
-
-    // 1. 왼쪽 센서가 라인을 감지할 때까지 좌회전
-    spin_left_on(abs(speed_turn_fwd - 20), abs(speed_turn_fwd));
-    while (digitalRead(SENSOR_LEFT) == LOW){
         delay(1);
     }
-
-    Serial.println("== 왼쪽 센서 감지됨, 중앙 센서 대기 ==");
-
-    // 2. 중앙 센서가 라인을 감지할 때까지 계속 회전
-    while (digitalRead(SENSOR_MID_R) == LOW){
-        delay(1);
-    }
-
-    while (digitalRead(SENSOR_MID_R) == HIGH){
-        delay(1);
-    }
-
-    
     car_brake(100);
-    delay(300); // 잠시 정지하여 안정화
+    delay(100);
 
-    // 4. 라인트레이싱으로 정확한 위치 찾기
-    int center = digitalRead(SENSOR_MID_R);
-    for(int i=0; i<100; i++){
-        center = digitalRead(SENSOR_MID_R);
-        line_track(SPEED_FAST, SPEED_SLOW);
-        delay(1);
-    }
+    // Stage 2: Move to Center
+    Serial.println(F("2. Moving to intersection center (torque)..."));
+    forward_on(SPEED_TURN_TORQUE_FWD);
+    delay(MOVE_TO_CENTER_DURATION); 
 
+    // Stage 3: Pivot Turn
+    Serial.println(F("3a. Pivoting left (torque speed)..."));
+    spin_left_on(SPEED_TURN_TORQUE_FWD);
+    while (digitalRead(SENSOR_LEFT) != LINE_DETECTED) { delay(1); }
 
-    car_stop();
-    Serial.println("== 회전 및 정렬 완료 ==");
+    Serial.println(F("3b. ...fine-tuning (mid-left sensor)..."));
+    while (digitalRead(SENSOR_MID_L) != LINE_DETECTED) { delay(1); }
+
+    Serial.println(F("3c. ...slowing down (mid-right sensor)..."));
+    spin_left_on(SPEED_TURN_TORQUE_FWD / 2); // Use half torque speed for slow part
+    while (digitalRead(SENSOR_MID_R) != LINE_DETECTED) { delay(1); }
+
+    // Stage 4: Stop
+    Serial.println(F("4. Turn complete. Final stop."));
+    car_brake(150);
+    delay(100);
 }
 
+void torque_turn_right()
+{
+    Serial.println(F("== Torque Turn Right Sequence Initiated =="));
 
-void turn_right(int speed_turn_fwd, int speed_turn_bwd){
-    Serial.println("== 오른쪽 회전 시작 ==");
-
-    // 오른쪽 바퀴는 역방향(속도 낮게), 왼쪽 바퀴는 정방향으로 회전
-    int reverse_speed = -70; // 역방향 속도를 직접 지정
-
-    forward_on(150);
-    delay(200);
-
-    // 1. 오른쪽 센서 감지될 때까지 우회전
-    spin_right_on(abs(speed_turn_fwd), abs(speed_turn_fwd - 20));
-    while (digitalRead(SENSOR_RIGHT) == LOW)
-    {
+    // Stage 1: Pre-Alignment
+    Serial.println(F("1. Aligning on current line (torque)..."));
+    for (int i = 0; i < 75; i++) { // Align for a bit longer due to higher momentum
+        line_track(SPEED_TORQUE_FAST, SPEED_TORQUE_SLOW);
         delay(1);
     }
-
-    Serial.println("== 오른쪽 센서 감지됨, 중앙 센서 대기 ==");
-
-    // 2. 중앙 센서 감지될 때까지 계속 회전
-    while (digitalRead(SENSOR_MID_R) == LOW)
-    {
-        delay(1);
-    }
-
     car_brake(100);
-    delay(300); // 잠시 정지하여 안정화
+    delay(100);
 
-    // 4. 라인트레이싱으로 정확한 위치 찾기
-    int center = digitalRead(SENSOR_MID_R);
-    for(int i=0; i<100; i++){
-        center = digitalRead(SENSOR_MID_R);
-        line_track(SPEED_SLOW, SPEED_FAST);
-        delay(1);
-    }
-    while(center == HIGH){
-        center = digitalRead(SENSOR_MID_R);
-        line_track(SPEED_SLOW, SPEED_FAST);
-        delay(1);
-    }
+    // Stage 2: Move to Center
+    Serial.println(F("2. Moving to intersection center (torque)..."));
+    forward_on(SPEED_TURN_TORQUE_FWD);
+    delay(MOVE_TO_CENTER_DURATION); 
 
-    car_stop();
-    Serial.println("== 회전 및 정렬 완료 ==");
+    // Stage 3: Pivot Turn
+    Serial.println(F("3a. Pivoting right (torque speed)..."));
+    spin_right_on(SPEED_TURN_TORQUE_FWD);
+    while (digitalRead(SENSOR_RIGHT) != LINE_DETECTED) { delay(1); }
+
+    Serial.println(F("3b. ...fine-tuning (mid-right sensor)..."));
+    while (digitalRead(SENSOR_MID_R) != LINE_DETECTED) { delay(1); }
+
+    Serial.println(F("3c. ...slowing down (mid-left sensor)..."));
+    spin_right_on(SPEED_TURN_TORQUE_FWD / 2); // Use half torque speed for slow part
+    while (digitalRead(SENSOR_MID_L) != LINE_DETECTED) { delay(1); }
+
+    // Stage 4: Stop
+    Serial.println(F("4. Turn complete. Final stop."));
+    car_brake(150);
+    delay(100);
 }
 
-
-void torque_turn_left(int speed_turn_fwd, int speed_turn_bwd)
-{
-    Serial.println("== 토크 왼쪽 회전 시작 ==");
-
-    // 1. 왼쪽 센서가 라인을 감지할 때까지 좌회전
-    while (digitalRead(SENSOR_LEFT) == LOW)
-    {
-        set_motor_speeds(speed_turn_bwd, speed_turn_fwd);
-        delay(3);
-    }
-
-    Serial.println("== 왼쪽 센서 감지됨, 중앙 센서 대기 ==");
-
-    // 2. 중앙 센서가 라인을 감지할 때까지 계속 회전
-    while (digitalRead(SENSOR_MID_R) == LOW)
-    {
-        set_motor_speeds(speed_turn_bwd, speed_turn_fwd);
-        delay(3);
-    }
-
-    car_stop();
-    delay(50);
-    
-    // 3. 뒤로 살짝 이동하며 라인 정렬
-    back_on(120);    
-    delay(150);
-    
-    // 4. 라인트레이싱으로 정확한 위치 찾기
-    int center = digitalRead(SENSOR_MID_R);
-    while(center == HIGH) {
-        center = digitalRead(SENSOR_MID_R);
-        set_motor_speeds(SPEED_TORQUE_SLOW, SPEED_TORQUE_FAST); 
-        delay(3);
-    }
-
-    car_stop();
-    Serial.println("== 토크 회전 및 정렬 완료 ==");
-}
-
-void torque_turn_right(int speed_turn_fwd, int speed_turn_bwd)
-{
-    Serial.println("== 토크 오른쪽 회전 시작 ==");
-
-    // 1. 오른쪽 센서 감지될 때까지 우회전
-    while (digitalRead(SENSOR_RIGHT) == LOW)
-    {
-        set_motor_speeds(speed_turn_fwd, speed_turn_bwd);
-        delay(3);
-    }
-
-    Serial.println("== 오른쪽 센서 감지됨, 중앙 센서 대기 ==");
-
-    // 2. 중앙 센서 감지될 때까지 계속 회전
-    while (digitalRead(SENSOR_MID_R) == LOW)
-    {
-        set_motor_speeds(speed_turn_fwd, speed_turn_bwd);
-        delay(3);
-    }
-
-    car_stop();
-    delay(50);
-    
-    // 3. 뒤로 살짝 이동하며 라인 정렬
-    back_on(120);
-    delay(150);
-    
-    // 4. 라인트레이싱으로 정확한 위치 찾기
-    int center = digitalRead(SENSOR_MID_R);
-    while(center == HIGH) {
-        center = digitalRead(SENSOR_MID_R);
-        set_motor_speeds(SPEED_TORQUE_SLOW, SPEED_TORQUE_FAST);
-        delay(3);
-    }
-
-    car_stop();
-    Serial.println("== 토크 회전 및 정렬 완료 ==");
-}
 /*
 void turn_left_stable()
     {

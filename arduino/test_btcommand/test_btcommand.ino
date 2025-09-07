@@ -7,19 +7,23 @@
 // #include "mpu.h"
 
 // 핀 정의
-const int SERVO_PIN = 8;
+const int SERVO_PIN = 2; // 핀 8은 라인 센서와 충돌하여 2로 변경
 
 // 집게 객체 생성
 ServoGrip gripper(SERVO_PIN, 80, 15);
 
 void setup()
 {
-    pinMode(7, INPUT);  // SENSOR_LEFT
-    pinMode(9, INPUT);  // SENSOR_MID
-    pinMode(10, INPUT); // SENSOR_RIGHT
-
     Serial.begin(9600);
     Serial.println("--- Setup Start ---");
+
+    Serial.println("Initializing sensors...");
+    line_trace_init(); // 라인 트레이서 센서 핀 초기화
+    Serial.println("Sensors initialized.");
+
+    Serial.println("Initializing motors...");
+    motor_init(); // TB6612 모터 드라이버 초기화
+    Serial.println("Motors initialized.");
 
     Serial.println("Attaching gripper...");
     gripper.attach();
