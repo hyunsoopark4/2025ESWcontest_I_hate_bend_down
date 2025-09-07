@@ -1,7 +1,7 @@
 #ifndef LINE_TRACE_H
 #define LINE_TRACE_H
 
-// IR Sensor Pins (LOW when line is detected)
+// IR Sensor Pins (HIGH when line is detected)
 #define SENSOR_LEFT 7
 #define SENSOR_MID_L 8
 #define SENSOR_MID_R 9

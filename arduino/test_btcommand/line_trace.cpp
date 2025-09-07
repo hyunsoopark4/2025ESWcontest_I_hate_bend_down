@@ -42,9 +42,8 @@ void line_trace()
         {
             // 3. Intersection detected. Stop the robot and exit the function.
             car_brake(150); // Apply brake for a firm stop
-            delay(100);     // Wait for the robot to settle
+            delay(200);     // Wait for the robot to settle
             return;
-
         }
 
         // A small delay to prevent the loop from running too fast and to allow for sensor reading stability.
@@ -58,17 +57,17 @@ void turn_left()
 
     // Stage 1: Pre-Alignment on the current line for stability.
     Serial.println(F("1. Aligning on current line..."));
-    for (int i = 0; i < 50; i++) {
+    for (int i = 0; i < 100; i++) {
         line_track();
         delay(1);
     }
-    car_brake(50);
+    car_brake(100);
     delay(100);
 
     // Stage 2: Move forward to position the robot's pivot point in the center of the intersection.
-    Serial.println(F("2. Moving to intersection center..."));
-    forward_on();
-    delay(MOVE_TO_CENTER_DURATION); // This constant is in dc_motor.h and needs tuning.
+    // Serial.println(F("2. Moving to intersection center..."));
+    // forward_on();
+    // delay(MOVE_TO_CENTER_DURATION); // This constant is in dc_motor.h and needs tuning.
 
     // Stage 3: Pivot turn using multiple sensors to find the new line.
     Serial.println(F("3a. Pivoting left to find new line (outer sensor)..."));
@@ -100,17 +99,17 @@ void turn_right()
 
     // Stage 1: Pre-Alignment on the current line for stability.
     Serial.println(F("1. Aligning on current line..."));
-    for (int i = 0; i < 50; i++) {
+    for (int i = 0; i < 100; i++) {
         line_track();
         delay(1);
     }
-    car_brake(50);
-    delay(100);
+    car_brake(100);
+    delay(200);
 
     // Stage 2: Move forward to position the robot's pivot point in the center of the intersection.
-    Serial.println(F("2. Moving to intersection center..."));
-    forward_on();
-    delay(MOVE_TO_CENTER_DURATION); // This constant is in dc_motor.h and needs tuning.
+    // Serial.println(F("2. Moving to intersection center..."));
+    // forward_on();
+    // delay(MOVE_TO_CENTER_DURATION); // This constant is in dc_motor.h and needs tuning.
 
     // Stage 3: Pivot turn using multiple sensors to find the new line.
     Serial.println(F("3a. Pivoting right to find new line (outer sensor)..."));
