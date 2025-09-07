@@ -1,19 +1,19 @@
 #ifndef LINE_TRACE_H
 #define LINE_TRACE_H
 
-// IR Sensor Pins (HIGH when line is detected)
+// 적외선 센서 핀 (라인을 감지하면 HIGH)
 #define SENSOR_LEFT 7
 #define SENSOR_MID_L 8
 #define SENSOR_MID_R 9
 #define SENSOR_RIGHT 10
 
-// Readability improvement
+// 가독성 향상을 위한 정의
 #define LINE_DETECTED HIGH
 
 #define SPEED_FWD 130
 #define SPEED_BWD -100
 
-//170 , 30 low battery
+//170 , 30 저전력 배터리
 #define SPEED_FAST 170
 #define SPEED_SLOW 50
 
