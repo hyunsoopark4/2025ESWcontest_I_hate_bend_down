@@ -44,4 +44,6 @@ extern bool crossed;
 void turn_left_stable();
 void turn_right_stable();
 
+void line_trace_init(); // 센서 핀 초기화 함수
+
 #endif

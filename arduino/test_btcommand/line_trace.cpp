@@ -2,6 +2,13 @@
 #include "line_trace.h"
 #include "dc_motor.h" // set_motor_speeds 직접 사용
 
+void line_trace_init() {
+    pinMode(SENSOR_LEFT, INPUT);
+    pinMode(SENSOR_MID_L, INPUT);
+    pinMode(SENSOR_MID_R, INPUT);
+    pinMode(SENSOR_RIGHT, INPUT);
+}
+
 bool lastState = false;
 
 // Proportional control line tracking using the two middle sensors
