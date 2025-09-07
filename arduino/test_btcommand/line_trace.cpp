@@ -278,6 +278,7 @@ void line_stabilize(int aim) {
             delay(50);
             spin_right_on(OPT_SPEED);
         }
+        delay(10);
         car_stop();
     }
 }

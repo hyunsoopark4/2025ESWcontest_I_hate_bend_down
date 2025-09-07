@@ -103,6 +103,30 @@ void loop()
         // 추가 send_current_state() 호출이 필요 없음
         break;
 
+    case CMD_HEAD_NORTH:
+        Serial.println("== Head north command received ==");
+        line_stabilize(TARGET_NORTH);
+        send_current_state();  // 현재 상태 전송
+        break;
+
+    case CMD_HEAD_EAST:
+        Serial.println("== Head east command received ==");
+        line_stabilize(TARGET_EAST);
+        send_current_state();  // 현재 상태 전송
+        break;
+
+    case CMD_HEAD_SOUTH:
+        Serial.println("== Head south command received ==");
+        line_stabilize(TARGET_SOUTH);
+        send_current_state();  // 현재 상태 전송
+        break;
+
+    case CMD_HEAD_WEST:
+        Serial.println("== Head west command received ==");
+        line_stabilize(TARGET_WEST);
+        send_current_state();  // 현재 상태 전송
+        break;
+
     case CMD_UNKNOWN:
         // 아무 입력 없으면 무시
         break;

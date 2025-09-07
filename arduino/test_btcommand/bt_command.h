@@ -13,19 +13,23 @@
 #define LOOP_LATENCY 20  // 20ms
 
 // 명령어 정의
-#define COMMAND_LIST(X) \
-    X(UNKNOWN, "UNKNOWN") \
-    X(OPEN, "OPN") \
-    X(CLOSE, "CLS") \
-    X(FORWARD, "F") \
+#define COMMAND_LIST(X)     \
+    X(UNKNOWN, "UNKNOWN")   \
+    X(OPEN, "OPN")          \
+    X(CLOSE, "CLS")         \
+    X(FORWARD, "F")         \
     X(FORWARD_TORQUE, "FT") \
-    X(LEFT, "L") \
-    X(RIGHT, "R") \
-    X(LEFT_TURBO, "LT") \
-    X(RIGHT_TURBO, "RT") \
-    X(BACKWARD, "B") \
-    X(STATUS, "S") \
-    X(MOVE_TO, "MOVE") \
+    X(LEFT, "L")            \
+    X(RIGHT, "R")           \
+    X(LEFT_TURBO, "LT")     \
+    X(RIGHT_TURBO, "RT")    \
+    X(BACKWARD, "B")        \
+    X(STATUS, "STAT")       \
+    X(MOVE_TO, "MOVE")      \
+    X(HEAD_NORTH, "HN")     \
+    X(HEAD_EAST, "HE")      \
+    X(HEAD_SOUTH, "HS")     \
+    X(HEAD_WEST, "HW")
 
 // 명령어 enum 생성
 #define GENERATE_ENUM(ENUM, STRING) CMD_##ENUM,
