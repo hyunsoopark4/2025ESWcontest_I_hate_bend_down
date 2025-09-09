@@ -56,9 +56,9 @@ void line_trace()
         delay(1);
     }
 
-    align_to_line(ALIGN_LEFT, ALIGN_BACKWARD);
-    align_to_line(ALIGN_RIGHT, ALIGN_BACKWARD);
 
+    align_to_line(ALIGN_RIGHT, ALIGN_BACKWARD);
+    align_to_line(ALIGN_LEFT, ALIGN_BACKWARD);
     car_brake(200);
     return;
 }
