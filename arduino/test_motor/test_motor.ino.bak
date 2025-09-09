@@ -1,0 +1,140 @@
+#include "dc_motor.h"
+
+void setup() {
+    Serial.begin(9600);
+    Serial.println("TB6612 Motor Driver Test Started");
+    Serial.println("================================");
+    
+    // 모터 드라이버 초기화
+    motor_init();
+    Serial.println("Motor driver initialized");
+    
+    delay(2000); // 2초 대기
+}
+
+void loop() {
+    Serial.println("\n=== Motor Test Sequence ===");
+    
+    // 1. 전진 테스트
+    Serial.println("1. Forward test (3 seconds)");
+    forward_on(150);
+    delay(3000);
+    car_stop();
+    delay(1000);
+    
+    // 2. 후진 테스트
+    Serial.println("2. Backward test (3 seconds)");
+    back_on(150);
+    delay(3000);
+    car_stop();
+    delay(1000);
+    
+    // 3. 좌회전 테스트
+    Serial.println("3. Left turn test (2 seconds)");
+    spin_left_on(120);
+    delay(2000);
+    car_stop();
+    delay(1000);
+    
+    // 4. 우회전 테스트
+    Serial.println("4. Right turn test (2 seconds)");
+    spin_right_on(120);
+    delay(2000);
+    car_stop();
+    delay(1000);
+    
+    // 5. 속도 변화 테스트 (전진)
+    Serial.println("5. Speed variation test (forward)");
+    for (int speed = 100; speed <= 200; speed += 50) {
+        Serial.print("Speed: ");
+        Serial.println(speed);
+        forward_on(speed);
+        delay(1500);
+    }
+    car_stop();
+    delay(1000);
+    
+    // 6. 모터 개별 제어 테스트
+    Serial.println("6. Individual motor control test");
+    
+    // 좌측 모터만
+    Serial.println("  Left motor only");
+    set_motor_speeds(150, 0);
+    delay(2000);
+    
+    // 우측 모터만
+    Serial.println("  Right motor only");
+    set_motor_speeds(0, 150);
+    delay(2000);
+    
+    // 서로 다른 속도
+    Serial.println("  Different speeds");
+    set_motor_speeds(100, 200);
+    delay(2000);
+    
+    car_stop();
+    delay(1000);
+    
+    // 7. 브레이크 테스트
+    Serial.println("7. Brake test");
+    forward_on(200);
+    delay(1000);
+    Serial.println("  Applying brake...");
+    car_brake(500); // 0.5초 브레이크
+    delay(1000);
+    
+    // 8. 방향 전환 테스트
+    Serial.println("8. Direction change test");
+    forward_on(150);
+    delay(1000);
+    back_on(150);
+    delay(1000);
+    spin_left_on(120);
+    delay(1000);
+    spin_right_on(120);
+    delay(1000);
+    car_stop();
+    
+    Serial.println("\n=== Test sequence completed ===");
+    Serial.println("Waiting 5 seconds before next cycle...");
+    delay(5000);
+}
+
+// 시리얼 명령어 처리 함수 (선택사항)
+void serialEvent() {
+    if (Serial.available()) {
+        String command = Serial.readString();
+        command.trim();
+        
+        if (command == "stop") {
+            car_stop();
+            Serial.println("Motors stopped");
+        } else if (command == "forward") {
+            forward_on(150);
+            Serial.println("Moving forward");
+        } else if (command == "backward") {
+            back_on(150);
+            Serial.println("Moving backward");
+        } else if (command == "left") {
+            spin_left_on(120);
+            Serial.println("Turning left");
+        } else if (command == "right") {
+            spin_right_on(120);
+            Serial.println("Turning right");
+        } else if (command == "brake") {
+            car_brake(300);
+            Serial.println("Brake applied");
+        } else if (command == "help") {
+            Serial.println("Available commands:");
+            Serial.println("  stop - Stop motors");
+            Serial.println("  forward - Move forward");
+            Serial.println("  backward - Move backward");
+            Serial.println("  left - Turn left");
+            Serial.println("  right - Turn right");
+            Serial.println("  brake - Apply brake");
+            Serial.println("  help - Show this help");
+        } else {
+            Serial.println("Unknown command. Type 'help' for available commands.");
+        }
+    }
+}
