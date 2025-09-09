@@ -17,24 +17,24 @@ void line_track(int speed_fast, int speed_slow)
     bool mid_l_detected = (digitalRead(SENSOR_MID_L) == LINE_DETECTED);
     bool mid_r_detected = (digitalRead(SENSOR_MID_R) == LINE_DETECTED);
 
-    if (mid_l_detected && mid_r_detected) {
-        // State: [X, 1, 1, X] -> Perfect center
+    if (!mid_l_detected && !mid_r_detected) {
+        // State: [X, 0, 0, X] -> Perfect center
         set_motor_speeds(speed_fast, speed_fast);
-    } else if (mid_l_detected && !mid_r_detected) {
-        // State: [X, 1, 0, X] -> Slightly left of center, steer right
-        set_motor_speeds(speed_fast, speed_slow);
     } else if (!mid_l_detected && mid_r_detected) {
-        // State: [X, 0, 1, X] -> Slightly right of center, steer left
+        // State: [X, 0, 1, X] -> Slightly left of center, steer right
+        set_motor_speeds(speed_fast, speed_slow);
+    } else if (mid_l_detected && !mid_r_detected) {
+        // State: [X, 1, 0, X] -> Slightly right of center, steer left
         set_motor_speeds(speed_slow, speed_fast);
     } else {
-        // State: [X, 0, 0, X] -> Line lost between middle sensors
+        // State: [X, 1, 1, X] -> Line lost between middle sensors
         // Action: Stop for now. A search routine could be added here later.
         car_stop();
     }
 }
 
 // Moves the robot along the line until an intersection is detected by outer sensors.
-void line_trace()
+void    line_trace()
 {
     while (true)
     {

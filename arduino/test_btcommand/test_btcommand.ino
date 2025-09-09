@@ -90,13 +90,13 @@ void loop()
 
     case CMD_LEFT_TURBO:
         Serial.println("== 왼쪽 터보 회전 명령 수신 ==");
-        turn_left(200, -60);
+        turn_left();
         send_current_state();  // 현재 상태 전송
         break;
 
     case CMD_RIGHT_TURBO:
         Serial.println("== 오른쪽 터보 회전 명령 수신 ==");
-        turn_right(200, -60);
+        turn_right();
         send_current_state();  // 현재 상태 전송
         break;
 

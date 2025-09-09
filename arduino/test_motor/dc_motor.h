@@ -4,30 +4,30 @@
 
 /*
  * =================================================
- * === TB6612 모터 드라이버 핀 설정 ===
+ * === TB6612 Motor Driver Pin Configuration ===
  * =================================================
- * L: 좌측 모터 (A 채널)
- * R: 우측 모터 (B 채널)
- * IN1, IN2: 방향 제어
- * PWM: 속도 제어 (PWM)
- * STBY: 대기 모드
+ * L: Left Motors (Channel A)
+ * R: Right Motors (Channel B)
+ * IN1, IN2: Direction Control
+ * PWM: Speed Control (PWM)
+ * STBY: Standby
  */
 
-// --- 대기 모드 핀 ---
+// --- Standby Pin ---
 #define STBY_PIN 4
 
-// --- 좌측 모터 (A 채널) ---
+// --- Left Motors (Channel A) ---
 #define L_IN1_PIN A0
 #define L_IN2_PIN A1
 #define L_PWM_PIN 5 // PWM
 
-// --- 우측 모터 (B 채널) ---
+// --- Right Motors (Channel B) ---
 #define R_IN1_PIN 11
 #define R_IN2_PIN 6
 #define R_PWM_PIN 3 // PWM
 
 
-// --- 모터 속도 및 시간 상수 ---
+// --- Motor Speed & Duration Constants ---
 #define OPT_SPEED 200         // 기본 주행 속도 (150~255 권장)
 #define TURN_SPEED 180        // 회전 시 속도
 #define TURN_SPEED_SLOW 100   // 회전 시 저속
@@ -35,7 +35,7 @@
 
 /*
  * =================================================
- * === 함수 원형 ===
+ * === Function Prototypes ===
  * =================================================
  */
 
