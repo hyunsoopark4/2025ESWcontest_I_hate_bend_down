@@ -13,10 +13,11 @@
 #define MOVE_TO_CENTER_DURATION 200 // 교차점 중앙 이동 시간 (ms)
 
 // --- 라인 트레이싱 및 정렬 속도 ---
-#define LINE_TRACE_SLOW_SPEED 50 // 라인을 벗어났을 때 한쪽 바퀴의 속도
+#define LINE_TRACE_FAST_SPEED 70
+#define LINE_TRACE_SLOW_SPEED 30 // 라인을 벗어났을 때 한쪽 바퀴의 속도
 #define ALIGN_SPEED 80           // 라인 정렬 시 한쪽 바퀴의 속도
 
-// --- 토크 모드 속도 ---
+// --- 토크 모드 속도 ---+
 #define SPEED_TORQUE_FAST 255
 #define SPEED_TORQUE_SLOW 70
 #define SPEED_TURN_TORQUE_FWD 220
@@ -44,10 +45,10 @@ void line_trace_torque(); // 목표물 습득 후 토크감 있는 주행
 void blno(int speed, bool apply_brake);
 void turn_left();
 void turn_right();
-void align_on_intersection(); // 교차로 라인 정렬 함수
+void align_on_intersection(bool back_align = true); // 교차로 라인 정렬 함수
 
 // line_track의 매개변수에 기본값 지정
-void line_track(int speed_fast = OPT_SPEED, int speed_slow = LINE_TRACE_SLOW_SPEED);
+void line_track(int speed_fast = LINE_TRACE_FAST_SPEED, int speed_slow = LINE_TRACE_SLOW_SPEED);
 
 // 토크 회전 함수 추가
 void torque_turn_left();
@@ -62,5 +63,7 @@ void turn_left_stable();
 void turn_right_stable();
 
 void line_trace_init(); // 센서 핀 초기화 함수
+
+void find_line(); // 새로운 라인 찾기 함수
 
 #endif

@@ -149,6 +149,12 @@ void loop()
         send_current_state();  // 현재 상태 전송
         break;
 
+    case CMD_FIND_LINE:
+        Serial.println("== 라인 찾기 명령 수신 ==");
+        find_line();
+        send_current_state();  // 현재 상태 전송
+        break;
+
     case CMD_UNKNOWN:
         // 아무 입력 없으면 무시
         break;

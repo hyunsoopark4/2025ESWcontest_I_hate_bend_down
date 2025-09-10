@@ -28,7 +28,8 @@
     X(BACKWARD, "B") \
     X(FF, "FF") \
     X(STATUS, "S") \
-    X(MOVE_TO, "MOVE")
+    X(MOVE_TO, "MOVE") \
+    X(FIND_LINE, "LINE")  // 새로 추가된 명령어
 
 // 명령어 enum 생성
 #define GENERATE_ENUM(ENUM, STRING) CMD_##ENUM,
