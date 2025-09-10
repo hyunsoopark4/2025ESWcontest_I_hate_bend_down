@@ -28,10 +28,8 @@
 
 
 // --- 모터 속도 및 시간 상수 ---
-#define OPT_SPEED 200         // 기본 주행 속도 (150~255 권장)
-#define TURN_SPEED 180        // 회전 시 속도
-#define TURN_SPEED_SLOW 100   // 회전 시 저속
-#define MOVE_TO_CENTER_DURATION 200 // 교차점 중앙으로 이동하는 시간 (ms) - 튜닝 필요
+// 속도 관련 상수는 line_trace.h 파일에서 관리합니다.
+#include "line_trace.h"
 
 /*
  * =================================================

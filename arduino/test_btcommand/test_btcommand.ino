@@ -52,6 +52,14 @@ void loop()
 {
     int cmd = bt_checkCommand();
 
+    // --- DEBUGGING --- //
+    // 블루투스로 어떤 명령이 수신되는지 시리얼 모니터에 즉시 출력합니다.
+    if (cmd != CMD_UNKNOWN) {
+        Serial.print("### Command Received: ");
+        Serial.println(cmd);
+    }
+    // --- END DEBUGGING --- //
+
     switch (cmd)
     {
     case CMD_OPEN:
@@ -82,7 +90,10 @@ void loop()
         break;
 
     case CMD_RIGHT:
-        Serial.println("== 오른쪽 회전 명령 수신 ==");
+        // 문제가 되는 부분인지 확인하기 위해 추가 디버깅 메시지 출력
+        Serial.println("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
+        Serial.println("!!! EXECUTING CMD_RIGHT (회전) !!!");
+        Serial.println("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
         turn_right();
         // turn_right_stable();
         send_current_state();  // 현재 상태 전송
