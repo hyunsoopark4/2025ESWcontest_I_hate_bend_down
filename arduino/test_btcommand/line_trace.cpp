@@ -26,12 +26,12 @@ void line_track(int speed_fast, int speed_slow)
     else if (!mid_l_detected && mid_r_detected)
     {
         // State: [X, 0, 1, X] -> Slightly left of center, steer right
-        set_motor_speeds(2*speed_fast, speed_slow);
+        set_motor_speeds(speed_fast, speed_slow);
     }
     else if (mid_l_detected && !mid_r_detected)
     {
         // State: [X, 1, 0, X] -> Slightly right of center, steer left
-        set_motor_speeds(speed_slow, 2*speed_fast);
+        set_motor_speeds(speed_slow, speed_fast);
     }
     else
     {
@@ -42,13 +42,13 @@ void line_track(int speed_fast, int speed_slow)
 }
 
 // '검정색은 싫어요' 함수: 교차로를 통과합니다.
-// 양쪽 끝 센서가 모두 검은 선을 벗어날 때까지 중앙 센서로 라인을 추적하며 직진합니다.
+// 양쪽 끝 센서가 모두 검은 선을 벗어날 때까지 라인을 추적하며 직진합니다.
 void blno(int speed, bool apply_brake)
 {
     // 양쪽 끝 센서 중 하나라도 라인을 감지하고 있는 동안 루프 실행
     while (digitalRead(SENSOR_LEFT) == LINE_DETECTED || digitalRead(SENSOR_RIGHT) == LINE_DETECTED)
     {
-        forward_on(speed);
+        line_track(); // 라인을 따라가며 교차로 통과
         delay(1);
     }
 
@@ -64,9 +64,9 @@ void blno(int speed, bool apply_brake)
 // Moves the robot along the line until an intersection is detected by outer sensors.
 void line_trace()
 {
-    bool left_edge_detected = (digitalRead(SENSOR_LEFT) == LINE_DETECTED);
-    bool right_edge_detected = (digitalRead(SENSOR_RIGHT) == LINE_DETECTED);
-    if (left_edge_detected && right_edge_detected)
+    bool left_edge_detected_initial = (digitalRead(SENSOR_LEFT) == LINE_DETECTED);
+    bool right_edge_detected_initial = (digitalRead(SENSOR_RIGHT) == LINE_DETECTED);
+    if (left_edge_detected_initial && right_edge_detected_initial)
     {
         // Full intersection: cross it without braking and continue the loop.
         blno(OPT_SPEED, false);
@@ -74,40 +74,38 @@ void line_trace()
 
     while (true)
     {
-        // 1. Follow the line for a small step using the middle sensors.
+        // 1. Always follow the line with the rear sensors.
         line_track();
 
-        // 2. Check the outer sensors for an intersection.
+        // 2. Check the front sensors for an intersection.
         bool left_edge_detected = (digitalRead(SENSOR_LEFT) == LINE_DETECTED);
         bool right_edge_detected = (digitalRead(SENSOR_RIGHT) == LINE_DETECTED);
 
         if (left_edge_detected || right_edge_detected)
         {
-            // T-junction or other line event detected.
-            // Stop and then pivot to align both sensors with the line.
-            
-            // 1. Initial stop and stabilization
+            // 3. Intersection detected by front sensors.
+            // Continue line tracking for a fixed duration to move the pivot point to the center.
+            unsigned long startTime = millis();
+            while (millis() - startTime < MOVE_TO_CENTER_DURATION)
+            {
+                line_track(); // Keep tracking the line while moving forward
+                delay(1);
+            }
+
+            // 4. Stop and stabilize.
             car_brake(150);
             delay(100);
 
-            // 2. Check which sensor is on the line and align the other.
-            // Re-read sensors after brake to get the final resting state.
-            bool final_left_detected = (digitalRead(SENSOR_LEFT) == LINE_DETECTED);
-            bool final_right_detected = (digitalRead(SENSOR_RIGHT) == LINE_DETECTED);
-            
-            // If both are on the line after the initial brake, no alignment is needed.
-            align_on_intersection(true);
+            // 5. Align perfectly on the intersection line.
+            align_on_intersection(false);
 
-            // 4. Exit the main line_trace loop.
+            // 6. Exit the main line_trace loop. The robot is now aligned at the intersection.
             break;
         }
 
         // A small delay to prevent the loop from running too fast and to allow for sensor reading stability.
         delay(1);
     }
-
-    align_on_intersection();
-    // car_brake(200);
     return;
 }
 
@@ -207,9 +205,20 @@ void line_trace_torque()
 
         if (left_edge_detected || right_edge_detected)
         {
-            // 3. Intersection detected. Stop the robot and exit.
+            // 3. Intersection detected by front sensors.
+            // Continue line tracking for a fixed duration to move the pivot point to the center.
+            unsigned long startTime = millis();
+            while (millis() - startTime < MOVE_TO_CENTER_DURATION)
+            {
+                line_track(SPEED_TORQUE_FAST, SPEED_TORQUE_SLOW); // Keep tracking with torque speeds
+                delay(1);
+            }
+
+            // 4. Stop and stabilize.
             car_brake(150);
             delay(100);
+
+            // 5. Exit the function. The robot is now at the intersection.
             return;
         }
         delay(1);
@@ -308,114 +317,39 @@ void torque_turn_right()
     delay(100);
 }
 
-/*
-void turn_left_stable()
-    {
-        Serial.println("== 안정화 좌회전 시작 ==");
-
-        // 1. 교차점 중앙으로 로봇의 회전축을 이동시킵니다.
-        // 이 값은 로봇의 속도와 바퀴 위치에 따라 조절해야 하는 가장 중요한 값입니다.
-        set_motor_speeds(100, 100);
-        delay(150); // 로봇이 교차로 중앙에 올 때까지의 전진 시간 (ms) - **튜닝 필요**
-
-        // 2. 현재 라인을 완전히 벗어날 때까지 좌회전합니다.
-        // (모든 센서가 라인 밖(HIGH)을 가리킬 때까지)
-        set_motor_speeds(-120, 120); // 제자리 좌회전
-        while (digitalRead(SENSOR_LEFT) == LOW || digitalRead(SENSOR_MID_R) == LOW || digitalRead(SENSOR_RIGHT) == LOW)
-        {
-            delay(1); // 센서가 모두 라인을 벗어날 때까지 대기
-        }
-        Serial.println("== 현재 라인 벗어남 ==");
-
-        // 3. 이제 새로운 수직 라인을 중앙 센서가 감지할 때까지 계속 회전합니다.
-        while (digitalRead(SENSOR_MID_R) == HIGH)
-        {
-            delay(1); // 중앙 센서가 라인을 찾을 때까지 대기
-        }
-        Serial.println("== 새로운 라인 감지 ==");
-
-        // 4. 라인을 감지했으므로 즉시 정지하여 오버슈팅을 최소화합니다.
-        car_brake(200); // 모터에 강한 제동
-        delay(100);     // 안정화를 위한 잠시 대기
-
-        Serial.println("== 회전 완료 ==");
-    }
-}
-
-    void turn_right_stable()
-    {
-        Serial.println("== 안정화 우회전 시작 ==");
-
-        // 1. 교차점 중앙으로 로봇의 회전축을 이동시킵니다.
-        set_motor_speeds(100, 100);
-        delay(150); // 로봇이 교차로 중앙에 올 때까지의 전진 시간 (ms) - **튜닝 필요**
-
-        // 2. 현재 라인을 완전히 벗어날 때까지 우회전합니다.
-        set_motor_speeds(120, -120); // 제자리 우회전
-        while (digitalRead(SENSOR_LEFT) == LOW || digitalRead(SENSOR_MID_R) == LOW || digitalRead(SENSOR_RIGHT) == LOW)
-        {
-            delay(1);
-        }
-        Serial.println("== 현재 라인 벗어남 ==");
-
-        // 3. 새로운 수직 라인을 중앙 센서가 감지할 때까지 계속 회전합니다.
-        while (digitalRead(SENSOR_MID_R) == HIGH)
-        {
-            delay(1);
-        }
-        Serial.println("== 새로운 라인 감지 ==");
-
-        // 4. 라인을 감지했으므로 즉시 정지합니다.
-        car_brake(200);
-        delay(100);
-
-        Serial.println("== 회전 완료 ==");
-    }
- */
-
 /**
- * @brief 관성으로 지나친 교차로 라인에 로봇을 다시 정렬합니다.
- * 로봇을 후진시켜 양쪽 끝 센서가 모두 라인 위에 위치하도록 조정합니다.
+ * @brief 교차로 라인에 로봇을 정렬합니다.
+ * 라인을 벗어난 쪽의 바퀴만 전진시켜 자세를 바로잡습니다.
  */
 void align_on_intersection(bool back_align) {
-    // 이미 정렬된 경우 함수 종료
+    // 1. Check if already aligned. If so, do nothing and exit.
     if (digitalRead(SENSOR_LEFT) == LINE_DETECTED && digitalRead(SENSOR_RIGHT) == LINE_DETECTED) {
         return;
     }
 
-    // 한쪽 센서라도 라인을 찾을 때까지 천천히 직진 후진
-    if (back_align) {
-        back_on(ALIGN_SPEED); // BUG FIX: Changed backward_on to back_on
-    }
-    else {
-        forward_on(ALIGN_SPEED);
-    }
-
-    while (digitalRead(SENSOR_LEFT) != LINE_DETECTED && digitalRead(SENSOR_RIGHT) != LINE_DETECTED) {
-        delay(1);
-    }
-    car_brake(100); // 첫 센서 감지 시 정지
-    delay(50);
-
-    // 한쪽은 감지했고, 나머지 한쪽을 마저 정렬
+    // 2. Determine which side is on the line.
+    // Note: This check uses outer and middle sensors for robustness.
     bool left_on = (digitalRead(SENSOR_LEFT) == LINE_DETECTED || digitalRead(SENSOR_MID_L) == LINE_DETECTED);
     bool right_on = (digitalRead(SENSOR_RIGHT) == LINE_DETECTED || digitalRead(SENSOR_MID_R) == LINE_DETECTED);
 
+    // 3. Pivot the unaligned side FORWARD until it finds the line.
     if (left_on && !right_on) {
-        // 왼쪽은 감지, 오른쪽은 못했을 경우: 오른쪽만 뒤로 돌려 마저 정렬
-        set_motor_speeds(0, -ALIGN_SPEED);
-        while (! (digitalRead(SENSOR_RIGHT) == LINE_DETECTED && digitalRead(SENSOR_MID_R) == LINE_DETECTED)) {
+        // Left side is on, right side is not. Pivot right wheel forward.
+        set_motor_speeds(0, ALIGN_SPEED);
+        // Wait until the right-side sensors detect the line.
+        while (digitalRead(SENSOR_RIGHT) != LINE_DETECTED && digitalRead(SENSOR_MID_R) != LINE_DETECTED) {
             delay(1);
         }
     } else if (!left_on && right_on) {
-        // 오른쪽은 감지, 왼쪽은 못했을 경우: 왼쪽만 뒤로 돌려 마저 정렬
-        set_motor_speeds(-ALIGN_SPEED, 0);
-        while (! (digitalRead(SENSOR_LEFT) == LINE_DETECTED && digitalRead(SENSOR_MID_L) == LINE_DETECTED)) {
+        // Right side is on, left side is not. Pivot left wheel forward.
+        set_motor_speeds(ALIGN_SPEED, 0);
+        // Wait until the left-side sensors detect the line.
+        while (digitalRead(SENSOR_LEFT) != LINE_DETECTED && digitalRead(SENSOR_MID_L) != LINE_DETECTED) {
             delay(1);
         }
     }
 
-    // 양쪽 모두 정렬 완료. 최종 정지.
+    // 4. Both sides are now aligned. Apply a final brake to stop firmly.
     car_brake(200);
 }
 
@@ -444,3 +378,85 @@ void align_to_line() {
     delay(50);
 }
 */
+
+// 1개 센서로 라인의 한쪽 날을 따라가는 함수
+void line_track_one_sensor(int speed_fast, int speed_slow)
+{
+    // SENSOR_MID_R 센서 하나만 사용합니다.
+    int center = digitalRead(SENSOR_MID_R);
+    static bool lastState = false; // 로그 출력을 위해 상태 저장
+
+    // LINE_DETECTED가 HIGH이므로, HIGH일 때 라인을 감지한 것입니다.
+    if (center == LINE_DETECTED) // 라인 위 (HIGH)
+    {
+        // 제공된 로직에 따라 우측으로 회전
+        set_motor_speeds(speed_fast, speed_slow);
+        if (!lastState)
+        {
+            lastState = true;
+            Serial.println("== 1-Sens: 감지(HIGH) -> 우회전 ==");
+        }
+    }
+    else // 라인 벗어남 (LOW)
+    {
+        // 제공된 로직에 따라 좌측으로 회전
+        set_motor_speeds(speed_slow, speed_fast);
+        if (lastState)
+        {
+            lastState = false;
+            Serial.println("== 1-Sens: 미감지(LOW) -> 좌회전 ==");
+        }
+    }
+    delayMicroseconds(500);
+}
+
+// 1개 센서 라인트레이싱을 실행하는 메인 함수
+void trace_one_sens()
+{
+    int leftEdge = digitalRead(SENSOR_LEFT);
+    int rightEdge = digitalRead(SENSOR_RIGHT);
+
+    // 시작 시 교차로에 있다면 통과
+    while (leftEdge == LINE_DETECTED || rightEdge == LINE_DETECTED)
+    {
+        line_track_one_sensor(OPT_SPEED, LINE_TRACE_SLOW_SPEED);
+        delay(1);
+        leftEdge = digitalRead(SENSOR_LEFT);
+        rightEdge = digitalRead(SENSOR_RIGHT);
+    }
+
+    // 라인을 찾을 때까지 트레이싱 시작
+    while (digitalRead(SENSOR_MID_R) != LINE_DETECTED)
+    {
+        line_track_one_sensor(OPT_SPEED, LINE_TRACE_SLOW_SPEED);
+        delay(1);
+    }
+
+    // 교차점을 만날 때까지 계속 라인트레이싱
+    while (true)
+    {
+        leftEdge = digitalRead(SENSOR_LEFT);
+        rightEdge = digitalRead(SENSOR_RIGHT);
+
+        // 교차점 감지 로직
+        if (leftEdge == LINE_DETECTED || rightEdge == LINE_DETECTED)
+        {
+            // 교차점 통과를 위해 약간 더 저속 트레이싱
+            for (int i = 0; i < 20; i++)
+            {
+                line_track_one_sensor(LINE_TRACE_SLOW_SPEED, LINE_TRACE_SLOW_SPEED / 2);
+                delay(5);
+            }
+            if (leftEdge != digitalRead(SENSOR_LEFT) && rightEdge != digitalRead(SENSOR_RIGHT))
+                continue;
+
+            // 급정지로 위치 안정화
+            car_brake(200);
+            delay(300);
+            return; // 함수 종료
+        }
+
+        // 일반 라인트레이싱
+        line_track_one_sensor(OPT_SPEED, LINE_TRACE_SLOW_SPEED);
+    }
+}

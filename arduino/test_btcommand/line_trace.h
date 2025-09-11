@@ -13,7 +13,7 @@
 #define MOVE_TO_CENTER_DURATION 200 // 교차점 중앙 이동 시간 (ms)
 
 // --- 라인 트레이싱 및 정렬 속도 ---
-#define LINE_TRACE_FAST_SPEED 70
+#define LINE_TRACE_FAST_SPEED 100
 #define LINE_TRACE_SLOW_SPEED 30 // 라인을 벗어났을 때 한쪽 바퀴의 속도
 #define ALIGN_SPEED 80           // 라인 정렬 시 한쪽 바퀴의 속도
 
@@ -65,5 +65,9 @@ void turn_right_stable();
 void line_trace_init(); // 센서 핀 초기화 함수
 
 void find_line(); // 새로운 라인 찾기 함수
+
+// 1-sensor tracking functions
+void line_track_one_sensor(int speed_fast, int speed_slow);
+void trace_one_sens();
 
 #endif

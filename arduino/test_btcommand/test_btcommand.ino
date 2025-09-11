@@ -72,7 +72,8 @@ void loop()
 
     case CMD_FORWARD:
         Serial.println("== 전진 명령 수신 ==");
-        line_trace();
+        // line_trace();
+        trace_one_sens();
         send_current_state();  // 현재 상태 전송
         break;
 
