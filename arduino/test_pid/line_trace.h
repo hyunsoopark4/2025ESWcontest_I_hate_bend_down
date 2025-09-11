@@ -41,18 +41,11 @@
 
 // 함수 선언
 void line_trace();  // 일상 주행
-void line_trace_torque(); // 목표물 습득 후 토크감 있는 주행
 void blno(int speed, bool apply_brake);
-void turn_left();
-void turn_right();
 void align_on_intersection(bool back_align = true); // 교차로 라인 정렬 함수
 
 // line_track의 매개변수에 기본값 지정
 void line_track(int speed_fast = LINE_TRACE_FAST_SPEED, int speed_slow = LINE_TRACE_SLOW_SPEED);
-
-// 토크 회전 함수 추가
-void torque_turn_left();
-void torque_turn_right();
 
 // 외부에서 사용할 수도 있도록 공개
 extern int node_count;  
