@@ -94,25 +94,9 @@ void line_trace()
             // Re-read sensors after brake to get the final resting state.
             bool final_left_detected = (digitalRead(SENSOR_LEFT) == LINE_DETECTED);
             bool final_right_detected = (digitalRead(SENSOR_RIGHT) == LINE_DETECTED);
-
-            if (final_left_detected && !final_right_detected) {
-                // Left is on, swing right side forward to find the line.
-                set_motor_speeds(0, ALIGN_SPEED);
-                while (digitalRead(SENSOR_RIGHT) != LINE_DETECTED) {
-                    delay(1);
-                }
-            } else if (!final_left_detected && final_right_detected) {
-                // Right is on, swing left side forward to find the line.
-                set_motor_speeds(ALIGN_SPEED, 0);
-                while (digitalRead(SENSOR_LEFT) != LINE_DETECTED) {
-                    delay(1);
-                }
-            }
+            
             // If both are on the line after the initial brake, no alignment is needed.
-
-            // 3. Final brake to stop the alignment pivot.
-            car_brake(150);
-            delay(100);
+            align_on_intersection(true);
 
             // 4. Exit the main line_trace loop.
             break;
