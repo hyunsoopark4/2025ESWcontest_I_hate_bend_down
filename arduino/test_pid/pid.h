@@ -25,11 +25,13 @@
 #define SENSOR_MID_R 9
 #define SENSOR_RIGHT 10
 
-// --- 제어 상태 ---
-enum PIDState {
-    PID_MANEUVERING,      // 조향 중 (또는 필요시 PID_TILTLEFT, PID_TILTRIGHT)
-    PID_INTERSECTION,     // 교차로 통과 중
-    PID_INLINE           // 센서 감지 안된 상태 (라인이 센서 사이에 있음)
+// --- 센서 상태 ---
+enum SensorState {
+    TILT_LEFT,           // 좌측으로 기울어짐
+    TILT_RIGHT,          // 우측으로 기울어짐
+    FRONT_INTERSECTION,  // 전면 교차로
+    REAR_INTERSECTION,   // 후면 교차로 (종료 조건)
+    INLINE              // 라인 중앙 (센서 미감지)
 };
 
 /*
@@ -44,55 +46,34 @@ private:
     float integral;
     float derivative;
     unsigned long last_update_time;
-    unsigned long last_debug_time;
     
     // 상태 추적
-    PIDState current_state;
+    SensorState current_state;
     unsigned long state_change_time;
-    float last_steering_direction;
-    bool intersection_detected;
-    
-    // 센서 상태 저장
-    bool sensor_left;
-    bool sensor_mid_l;
-    bool sensor_mid_r;
-    bool sensor_right;
-    int current_sensor_state;
     
     // 센서 노이즈 방지
     bool reliable_sensor_read(int pin);
-    int read_sensor_state();
-    
-    // 센서 상태 분석
-    float calculate_error();
-    bool is_rear_intersection();
+    void read_sensor_state();
     
     // 제어 로직
-    float calculate_pid(float error);
+    float calculate_error();
     void apply_motor_control(float correction);
     
 public:
     // 생성자
     LinePID();
     
-    // 초기화 (라인트레이싱 함수 호출 시 실행)
+    // 초기화
     void reset();
     
-    // 메인 PID 업데이트 함수
-    void update();
+    // PID 라인트레이싱 실행
+    void run();
     
-    // 상태 확인 함수
-    PIDState get_state() { return current_state; }
-    float get_last_error() { return last_error; }
-    
-    // 디버깅 함수
-    void print_debug_info();
+    // 상태 확인
+    SensorState get_state() { return current_state; }
 };
 
 // 전역 PID 객체
 extern LinePID line_pid;
-
-// 함수 선언
-void pid_line_trace();  // PID 기반 라인트레이싱 메인 함수
 
 #endif
