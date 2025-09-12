@@ -15,8 +15,8 @@
 #define KD 0.05   // 미분 게인 (Derivative)
 
 // --- 속도 설정 ---
-#define PID_BASE_SPEED 35      // TB6612 + 7V + 1kg 기준 최소 스톨 방지 속도
-#define PID_MAX_CORRECTION 25  // 최대 조향 보정값 (±25)
+#define PID_BASE_SPEED 110      // TB6612 + 7V + 1kg 기준 최소 스톨 방지 속도
+#define PID_MAX_CORRECTION 50  // 최대 조향 보정값 (±25)
 #define PID_UPDATE_INTERVAL 20 // PID 업데이트 주기 (ms) = 50Hz
 
 // --- 센서 관련 ---

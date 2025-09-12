@@ -94,12 +94,12 @@ void LinePID::read_sensor_state() {
         Serial.println(" ms");
     }
     
-    if (front_left && !front_right) {
+    if (!front_left && front_right) {
         // 좌측 기울어짐
         if (current_state != TILT_LEFT) {
-            // INLINE에서 TILT로 변경 시 INLINE 시간 누적
+            // INLINE에서 TILT로 변경 시 실제 INLINE 시간 계산
             if (previous_state == INLINE) {
-                inline_total_time += (current_time - inline_start_time);
+                inline_total_time = (current_time - inline_start_time - intersection_time);
             }
             
             // 이전 INLINE 시간을 기반으로 PID 계산
@@ -108,17 +108,18 @@ void LinePID::read_sensor_state() {
             
             // TILT 상태로 변경 시 타이머 초기화
             inline_total_time = 0;
+            intersection_time = 0; // intersection_time도 초기화
             
             current_state = TILT_LEFT;
             state_change_time = current_time;
             Serial.println("State changed to: TILT_LEFT (timer reset, PID calculated)");
         }
-    } else if (!front_left && front_right) {
+    } else if (front_left && !front_right) {
         // 우측 기울어짐
         if (current_state != TILT_RIGHT) {
-            // INLINE에서 TILT로 변경 시 INLINE 시간 누적
+            // INLINE에서 TILT로 변경 시 실제 INLINE 시간 계산
             if (previous_state == INLINE) {
-                inline_total_time += (current_time - inline_start_time);
+                inline_total_time = (current_time - inline_start_time - intersection_time);
             }
             
             // 이전 INLINE 시간을 기반으로 PID 계산
@@ -127,6 +128,7 @@ void LinePID::read_sensor_state() {
             
             // TILT 상태로 변경 시 타이머 초기화
             inline_total_time = 0;
+            intersection_time = 0; // intersection_time도 초기화
             
             current_state = TILT_RIGHT;
             state_change_time = current_time;
@@ -215,7 +217,7 @@ void LinePID::pid_linetrace() {
         
         // 후면 교차로 감지 시 정지 및 함수 종료
         if (current_state == REAR_INTERSECTION) {
-            set_motor_speeds(0, 0);
+            car_brake(200);
             Serial.println("PID: Rear intersection detected - function exit");
             return;
         }
@@ -224,12 +226,12 @@ void LinePID::pid_linetrace() {
         switch (current_state) {
             case TILT_LEFT:
                 // INLINE이 될 때까지 우회전
-                set_motor_speeds(20, 40);
+                set_motor_speeds(0, PID_BASE_SPEED);
                 break;
                 
             case TILT_RIGHT:
                 // INLINE이 될 때까지 좌회전
-                set_motor_speeds(40, 20);
+                set_motor_speeds(PID_BASE_SPEED, 0);
                 break;
                 
             case INLINE:
