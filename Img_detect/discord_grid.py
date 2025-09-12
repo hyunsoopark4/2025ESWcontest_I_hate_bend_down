@@ -7,26 +7,23 @@ import requests
 import threading
 import math
 
-# --- 설정 (사용자 지정 값으로 고정) ---
+# 설정
 WEBHOOK_URL = "https://discord.com/api/webhooks/1407691826638487572/vq_BWv6GeRGTlbWNFD1HOanbL40kI4-RIZo48RYTVqAbkRFvThfLjTHb3SpkyFEBOIhO"
 YOLO_MODEL_PATH = 'runs/detect/train6/weights/best.pt'
 CONF_THRESHOLD = 0.8
 
-# --- 그리드 설정 ---
+# 그리드 설정
 GRID_DIMS = (5, 6)
 
-# --- 시간 및 상태 관리 설정 ---
+# 시간 및 상태 관리 설정
 DETECTION_INTERVAL = 5
 CONFIRMATION_TIME = 15
 POST_NOTIFICATION_COOLDOWN = 60
 POSITION_THRESHOLD = 50
 
 
-# --- 설정 끝 ---
-
-# --- Helper 함수들 (이전과 동일) ---
 def send_discord_notification(filename, conf, vtx_info):
-    print(f"🚀 (백그라운드) 디스코드로 정보 전송 시도...")
+    print(f"디스코드로 정보 전송 시도")
     try:
         with open(filename, "rb") as f:
             message = f"신발이 탐지되었습니다! (신뢰도: {conf * 100:.1f}%)\n{vtx_info}"
@@ -34,9 +31,9 @@ def send_discord_notification(filename, conf, vtx_info):
             files = {'file': (filename, f, 'image/jpeg')}
             response = requests.post(WEBHOOK_URL, data=payload, files=files)
         if 200 <= response.status_code < 300:
-            print("✅ (백그라운드) 디스코드 전송 성공!")
+            print("디스코드 전송 성공!")
     except Exception as e:
-        print(f"❌ (백그라운드) 전송 중 오류 발생: {e}")
+        print(f"전송 중 오류 발생: {e}")
 
 
 def get_grid_points_in_pixels(grid_dims, homography_matrix):
@@ -73,9 +70,6 @@ def get_angle_direction(p1, p2):
     return ""
 
 
-# --- Helper 함수 끝 ---
-
-# --- 메인 코드 ---
 model = YOLO(YOLO_MODEL_PATH)
 try:
     matrix = np.load('homography_matrix.npy')
@@ -109,7 +103,7 @@ while True:
         cv2.imshow("Real-time Grid Detector", frame)
         if cv2.waitKey(1) & 0xFF == ord('q'):
             break
-        continue  # ❗️❗️❗️ 수정된 부분: 쿨다운 중에는 아래 코드를 실행하지 않음
+        continue
 
     # 2. (매 프레임) YOLO 추론 및 최고 신뢰도 신발 찾기
     results = model.predict(source=frame, verbose=False)
@@ -196,4 +190,5 @@ while True:
         break
 
 cap.release()
+
 cv2.destroyAllWindows()
