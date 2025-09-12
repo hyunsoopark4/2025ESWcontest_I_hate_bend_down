@@ -51,12 +51,21 @@ private:
     SensorState current_state;
     unsigned long state_change_time;
     
+    // INLINE 타이머 관리
+    unsigned long inline_start_time;    // INLINE 상태 시작 시간
+    unsigned long inline_total_time;    // 누적된 INLINE 시간
+    unsigned long intersection_start_time; // FRONT_INTERSECTION 시작 시간
+    unsigned long intersection_time;    // FRONT_INTERSECTION 지속 시간
+    
+    // PID 계산 결과 저장
+    float correction;                   // 계산된 보정값
+    
     // 센서 노이즈 방지
     bool reliable_sensor_read(int pin);
     void read_sensor_state();
     
     // 제어 로직
-    float calculate_error();
+    float calculate_error_with_time(float inline_time);
     void apply_motor_control(float correction);
     
 public:
@@ -67,7 +76,7 @@ public:
     void reset();
     
     // PID 라인트레이싱 실행
-    void run();
+    void pid_linetrace();
     
     // 상태 확인
     SensorState get_state() { return current_state; }

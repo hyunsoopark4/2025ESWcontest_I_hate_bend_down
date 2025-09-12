@@ -24,9 +24,9 @@ void setup() {
 
 void loop() {
     // PID 라인트레이싱 실행 (무한 루프 포함)
-    line_pid.run();
+    line_pid.pid_linetrace();
     
-    // run() 함수가 종료되면 (후면 교차로 감지) 무한 대기
+    // pid_linetrace() 함수가 종료되면 (후면 교차로 감지) 무한 대기
     Serial.println("Line tracing completed - infinite wait");
     while(1) {
         delay(1000);
