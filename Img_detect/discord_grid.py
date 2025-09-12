@@ -69,12 +69,12 @@ def get_angle_direction(p1, p2):
     if -67.5 <= angle_deg < -22.5: return "SE"
     return ""
 
-
+# 메인 코드
 model = YOLO(YOLO_MODEL_PATH)
 try:
     matrix = np.load('homography_matrix.npy')
 except FileNotFoundError:
-    print("❌ 'homography_matrix.npy' 파일이 없습니다. 'live_calibration.py'를 먼저 실행하세요.")
+    print(" 'homography_matrix.npy' 파일이 없습니다. 'live_calibration.py'를 먼저 실행하세요.")
     exit()
 
 all_vertices_pixels, all_vertices_real = get_grid_points_in_pixels(GRID_DIMS, matrix)
@@ -192,3 +192,4 @@ while True:
 cap.release()
 
 cv2.destroyAllWindows()
+
