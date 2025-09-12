@@ -4,7 +4,9 @@
 #include "line_trace.h"
 #include "dc_motor.h"
 #include "navigation.h"  // navigation 헤더 추가
-// #include "mpu.h"
+#include "pid.h"
+
+
 
 // 핀 정의
 const int SERVO_PIN = 2; // 핀 8은 라인 센서와 충돌하여 2로 변경
@@ -32,10 +34,6 @@ void setup()
     Serial.println("Initializing Bluetooth...");
     bt_init();
     Serial.println("Bluetooth initialized.");
-
-    Serial.println("Initializing MPU...");
-    // mpu_init();
-    Serial.println("MPU initialized.");
 
     Serial.println("Initializing navigation...");
     init_navigation();
@@ -72,8 +70,9 @@ void loop()
 
     case CMD_FORWARD:
         Serial.println("== 전진 명령 수신 ==");
-        line_trace();
-        send_current_state();  // 현재 상태 전송
+        line_pid.pid_linetrace();
+        // line_trace();
+        // send_current_state();  // 현재 상태 전송
         break;
 
     case CMD_FORWARD_TORQUE:
