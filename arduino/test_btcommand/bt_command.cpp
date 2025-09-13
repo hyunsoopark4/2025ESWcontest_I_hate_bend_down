@@ -105,13 +105,13 @@ int bt_checkCommand()
                         {
                             isTorqueMode ? torque_turn_right() : turn_right();
                             update_direction(false);
-                            isTorqueMode ? line_trace_torque() : line_pid.pid_linetrace();
+                            isTorqueMode ? line_trace(SPEED_TORQUE_FAST) : line_pid.pid_linetrace();
                             isTorqueMode ? torque_turn_right() : turn_right();
                             update_direction(false);
                         }
                     }
                     send_movement_msg("Moving NORTH");
-                    isTorqueMode ? line_trace_torque() : line_pid.pid_linetrace();
+                    isTorqueMode ? line_trace(SPEED_TORQUE_FAST) : line_pid.pid_linetrace();
                     update_position();
                 }
                 else
@@ -133,13 +133,13 @@ int bt_checkCommand()
                         {
                             isTorqueMode ? torque_turn_right() : turn_right();
                             update_direction(false);
-                            isTorqueMode ? line_trace_torque() : line_pid.pid_linetrace();
+                            isTorqueMode ? line_trace(SPEED_TORQUE_FAST) : line_pid.pid_linetrace();
                             isTorqueMode ? torque_turn_right() : turn_right();
                             update_direction(false);
                         }
                     }
                     send_movement_msg("Moving SOUTH");
-                    isTorqueMode ? line_trace_torque() : line_pid.pid_linetrace();
+                    isTorqueMode ? line_trace(SPEED_TORQUE_FAST) : line_pid.pid_linetrace();
                     update_position();
                 }
             }
@@ -156,7 +156,7 @@ int bt_checkCommand()
                         update_direction(false);
                     }
                     send_movement_msg("Moving EAST");
-                    isTorqueMode ? line_trace_torque() : line_pid.pid_linetrace();
+                    isTorqueMode ? line_trace(SPEED_TORQUE_FAST) : line_pid.pid_linetrace();
                     ;
                     update_position();
                 }
@@ -169,7 +169,7 @@ int bt_checkCommand()
                         update_direction(true);
                     }
                     send_movement_msg("Moving WEST");
-                    isTorqueMode ? line_trace_torque() : line_pid.pid_linetrace();
+                    isTorqueMode ? line_trace(SPEED_TORQUE_FAST) : line_pid.pid_linetrace();
                     update_position();
                 }
             }
@@ -182,7 +182,7 @@ int bt_checkCommand()
                 {
                     isTorqueMode ? torque_turn_right() : turn_right();
                     update_direction(false);
-                    isTorqueMode ? line_trace_torque() : line_pid.pid_linetrace();
+                    isTorqueMode ? line_trace(SPEED_TORQUE_FAST) : line_pid.pid_linetrace();
                     isTorqueMode ? torque_turn_right() : turn_right();
                     update_direction(false);
                 }

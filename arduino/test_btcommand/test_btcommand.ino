@@ -18,7 +18,8 @@ void setup()
     Serial.println("Setup Start");
 
     Serial.println("Init sensors...");
-    line_trace_init(); // 라인 트레이서 센서 핀 초기화
+    // PID 시스템의 센서 초기화 함수 사용
+    sensor_init();
     Serial.println("Sensors OK");
 
     Serial.println("Init motors...");
@@ -73,26 +74,21 @@ void loop()
 
     case CMD_FORWARD:
         Serial.println("FWD");
-        line_pid.pid_linetrace();
-        // line_trace();
-        // send_current_state();  // 현재 상태 전송
+        line_trace();
+        send_current_state();  // 현재 상태 전송
         break;
 
     case CMD_FORWARD_TORQUE:
         Serial.println("FWD TQ");
-        line_trace_torque();
-        Serial.println("send_state start");
+        line_trace(SPEED_TORQUE_FAST);  // 토크 속도로 라인 추적
         send_current_state();  // 현재 상태 전송
-        Serial.println("send_state done");
         break;
 
     case CMD_LEFT:
         Serial.println("LEFT");
         // turn_left_stable();
         turn_left();
-        Serial.println("send_state start");
         send_current_state();  // 현재 상태 전송
-        Serial.println("send_state done");
         break;
 
     case CMD_RIGHT:
@@ -100,9 +96,7 @@ void loop()
         Serial.println("RIGHT");
         turn_right();
         // turn_right_stable();
-        Serial.println("send_state start");
         send_current_state();  // 현재 상태 전송
-        Serial.println("send_state done");
         break;
 
     case CMD_LEFT_TURBO:
@@ -134,9 +128,7 @@ void loop()
         break;
 
     case CMD_STATUS:
-        Serial.println("send_state start");
         send_current_state();  // 상태 요청 시 현재 상태 전송
-        Serial.println("send_state done");
         break;
 
     case CMD_MOVE_TO:

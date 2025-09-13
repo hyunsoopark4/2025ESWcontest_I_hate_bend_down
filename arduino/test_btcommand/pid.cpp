@@ -188,9 +188,13 @@ float LinePID::calculate_error_with_time(float inline_time) {
 }
 
 // 모터 제어 적용 함수
-void LinePID::apply_motor_control(float correction) {
-    int left_speed = PID_BASE_SPEED - correction;
-    int right_speed = PID_BASE_SPEED + correction;
+void LinePID::apply_motor_control(int base_speed, float correction) {
+    // base_speed에 비례한 최대 보정값 계산
+    int max_correction = base_speed / 2;
+    correction = constrain(correction, -max_correction, max_correction);
+
+    int left_speed = base_speed - correction;
+    int right_speed = base_speed + correction;
 
     // 속도 제한 (0~255)
     left_speed = constrain(left_speed, 0, 255);
@@ -200,7 +204,7 @@ void LinePID::apply_motor_control(float correction) {
 }
 
 // PID 라인트레이싱 실행 함수
-void LinePID::pid_linetrace() {
+void LinePID::pid_linetrace(int base_speed) {
     // PID 시스템 초기화
     reset();
     Serial.println("PID Start");
@@ -229,17 +233,17 @@ void LinePID::pid_linetrace() {
         switch (current_state) {
         case TILT_LEFT:
             // INLINE이 될 때까지 우회전
-            set_motor_speeds(0, PID_BASE_SPEED);
+            set_motor_speeds(0, base_speed);
             break;
 
         case TILT_RIGHT:
             // INLINE이 될 때까지 좌회전
-            set_motor_speeds(PID_BASE_SPEED, 0);
+            set_motor_speeds(base_speed, 0);
             break;
 
         case INLINE:
             // 계산된 PID 값으로 직진
-            apply_motor_control(correction);
+            apply_motor_control(base_speed, correction);
             break;
 
         case FRONT_INTERSECTION:
@@ -253,4 +257,130 @@ void LinePID::pid_linetrace() {
 
         delay(1); // CPU 부하 방지
     }
+}
+
+// 센서 핀 초기화 함수
+void sensor_init() {
+    pinMode(SENSOR_LEFT, INPUT);
+    pinMode(SENSOR_MID_L, INPUT);
+    pinMode(SENSOR_MID_R, INPUT);
+    pinMode(SENSOR_RIGHT, INPUT);
+}
+
+// INLINE 정렬 함수 - INLINE 상태가 지정된 시간만큼 유지되면 정렬 완료
+bool LinePID::align_inline(int align_speed, unsigned long timeout_ms) {
+    unsigned long start_time = millis();
+    unsigned long inline_maintain_start = 0;
+    bool is_inline_started = false;
+
+    Serial.println("Align inline start");
+
+    while (millis() - start_time < timeout_ms) {
+        read_sensor_state();
+
+        switch (current_state) {
+        case TILT_LEFT:
+            // INLINE이 될 때까지 우회전
+            set_motor_speeds(0, align_speed);
+            is_inline_started = false;
+            break;
+
+        case TILT_RIGHT:
+            // INLINE이 될 때까지 좌회전
+            set_motor_speeds(align_speed, 0);
+            is_inline_started = false;
+            break;
+
+        case INLINE:
+            if (!is_inline_started) {
+                inline_maintain_start = millis();
+                is_inline_started = true;
+            }
+
+            // INLINE 상태가 2초간 유지되면 정렬 완료
+            if (millis() - inline_maintain_start >= 2000) {
+                car_brake(100);
+                Serial.println("Align inline complete");
+                return true;
+            }
+
+            // 정렬 중에는 천천히 직진
+            set_motor_speeds(align_speed, align_speed);
+            break;
+
+        default:
+            // 교차로나 기타 상태에서는 정지
+            set_motor_speeds(0, 0);
+            is_inline_started = false;
+            break;
+        }
+
+        delay(10);
+    }
+
+    car_brake(100);
+    Serial.println("Align inline timeout");
+    return false;
+}
+
+// 교차로 정렬 함수
+bool LinePID::align_intersection(int align_speed) {
+    Serial.println("Align intersection start");
+
+    // 1단계: 먼저 INLINE 정렬 수행
+    if (!align_inline(align_speed, 5000)) {
+        Serial.println("Inline alignment failed");
+        return false;
+    }
+
+    // 2단계: 정렬 과정에서 앞으로 이동했을 수 있으므로 역방향 PID로 보정
+    Serial.println("Reverse correction start");
+    reverse_pid_linetrace(align_speed, 1000); // 1초간 역방향으로 보정
+
+    Serial.println("Align intersection complete");
+    return true;
+}
+
+// 역방향 PID 라인트레이싱 (교차로 정렬용)
+void LinePID::reverse_pid_linetrace(int base_speed, unsigned long duration_ms) {
+    unsigned long start_time = millis();
+    reset(); // PID 시스템 초기화
+
+    while (millis() - start_time < duration_ms) {
+        unsigned long current_time = millis();
+
+        // 업데이트 주기 확인
+        if (current_time - last_update_time < PID_UPDATE_INTERVAL) {
+            delay(1);
+            continue;
+        }
+
+        read_sensor_state();
+
+        switch (current_state) {
+        case TILT_LEFT:
+            // 역방향이므로 방향이 반대
+            set_motor_speeds(-base_speed, 0);
+            break;
+
+        case TILT_RIGHT:
+            // 역방향이므로 방향이 반대
+            set_motor_speeds(0, -base_speed);
+            break;
+
+        case INLINE:
+            // 역방향 직진
+            set_motor_speeds(-base_speed, -base_speed);
+            break;
+
+        default:
+            set_motor_speeds(0, 0);
+            break;
+        }
+
+        delay(1);
+    }
+
+    car_brake(100);
+    Serial.println("Reverse PID complete");
 }

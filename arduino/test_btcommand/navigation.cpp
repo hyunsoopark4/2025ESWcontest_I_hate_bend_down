@@ -66,7 +66,7 @@ void navigate_to_target() {
     adjust_direction(target_info.approach_direction);
 
     // 4. 목표물 접근 (라인트레이싱으로)
-    line_trace_torque();  // 토크 모드로 접근
+    line_trace(SPEED_TORQUE_FAST);  // 토크 모드로 접근
     // TODO: grab_target() 함수 호출 필요
 
     // 5. 원점으로 복귀

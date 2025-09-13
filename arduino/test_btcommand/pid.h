@@ -9,7 +9,7 @@
  * =================================================
  */
 
-// --- PID 계수 (튜닝 가능) ---
+ // --- PID 계수 (튜닝 가능) ---
 #define KP 0.8    // 비례 게인 (Proportional)
 #define KI 0.1    // 적분 게인 (Integral) 
 #define KD 0.05   // 미분 게인 (Derivative)
@@ -46,43 +46,51 @@ private:
     float integral;
     float derivative;
     unsigned long last_update_time;
-    
+
     // 상태 추적
     SensorState current_state;
     unsigned long state_change_time;
-    
+
     // INLINE 타이머 관리
     unsigned long inline_start_time;    // INLINE 상태 시작 시간
     unsigned long inline_total_time;    // 누적된 INLINE 시간
     unsigned long intersection_start_time; // FRONT_INTERSECTION 시작 시간
     unsigned long intersection_time;    // FRONT_INTERSECTION 지속 시간
-    
+
     // PID 계산 결과 저장
     float correction;                   // 계산된 보정값
-    
+
     // 센서 노이즈 방지
     bool reliable_sensor_read(int pin);
     void read_sensor_state();
-    
+
     // 제어 로직
     float calculate_error_with_time(float inline_time);
-    void apply_motor_control(float correction);
-    
+    void apply_motor_control(int base_speed, float correction);
+
 public:
     // 생성자
     LinePID();
-    
+
     // 초기화
     void reset();
-    
-    // PID 라인트레이싱 실행
-    void pid_linetrace();
-    
+
+    // PID 라인트레이싱 실행 (속도 조절 가능)
+    void pid_linetrace(int base_speed = PID_BASE_SPEED);
+
+    // 정렬 함수들
+    bool align_inline(int align_speed = 70, unsigned long timeout_ms = 2000);
+    bool align_intersection(int align_speed = 70);
+    void reverse_pid_linetrace(int base_speed, unsigned long duration_ms);
+
     // 상태 확인
     SensorState get_state() { return current_state; }
 };
 
 // 전역 PID 객체
 extern LinePID line_pid;
+
+// 센서 초기화 함수
+void sensor_init();
 
 #endif
