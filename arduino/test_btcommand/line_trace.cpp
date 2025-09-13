@@ -30,7 +30,7 @@ void line_trace(int base_speed)
 {
     // 1단계: 교차로 통과 (blno)
     Serial.println("Step 1: Cross intersection");
-    blno(base_speed > 150 ? base_speed : OPT_SPEED, false);
+    blno(base_speed, false);
 
     // 2단계: PID 라인트레이싱
     Serial.println("Step 2: PID line tracing");
