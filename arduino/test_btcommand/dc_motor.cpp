@@ -64,12 +64,12 @@ void back_on(int speed) {
 
 // 제자리 좌회전
 void spin_left_on(int speed) {
-    set_motor_speeds(-speed, speed);
+    set_motor_speeds(speed, -speed);
 }
 
 // 제자리 우회전
 void spin_right_on(int speed) {
-    set_motor_speeds(speed, -speed);
+    set_motor_speeds(-speed, speed);
 }
 
 // 모터 정지 (관성 주행)

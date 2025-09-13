@@ -27,7 +27,7 @@
 #define R_PWM_PIN 3 // PWM
 
 #define OPT_SPEED 100         // 기본 주행 속도 (PWM: 0~255)
-#define TURN_SPEED 90        // 기본 회전 속도 (PWM: 0~255)
+#define TURN_SPEED 85        // 기본 회전 속도 (PWM: 0~255)
 // --- 모터 속도 및 시간 상수 ---
 // 속도 관련 상수는 line_trace.h 파일에서 관리합니다.
 

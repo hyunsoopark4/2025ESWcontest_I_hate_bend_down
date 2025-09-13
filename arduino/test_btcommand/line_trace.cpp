@@ -30,7 +30,7 @@ void line_trace(int base_speed)
 {
     // 1단계: 교차로 통과 (blno)
     Serial.println("Step 1: Cross intersection");
-    blno(base_speed, false);
+    blno(base_speed > 150 ? base_speed : OPT_SPEED, false);
 
     // 2단계: PID 라인트레이싱
     Serial.println("Step 2: PID line tracing");
@@ -38,45 +38,62 @@ void line_trace(int base_speed)
 
     // 3단계: 역방향 PID 라인트레이싱 (위치 보정)
     Serial.println("Step 3: Reverse PID correction");
-    line_pid.reverse_pid_linetrace(REVERSE_SPEED, 1000);
+    int reverse_speed = base_speed > 150 ? 100 : 80; // 토크 모드일 때 더 높은 역방향 속도
+    line_pid.reverse_pid_linetrace(reverse_speed, 1000);
 
     Serial.println("Line trace sequence complete");
 }
 
 void turn_left()
 {
-    spin_left_on();
+    int speed = TURN_SPEED;
+
+    // 1. 현재 라인에서 벗어날 때까지 회전
+    spin_left_on(speed);
     while (digitalRead(SENSOR_LEFT) == LINE_DETECTED)
     {
         delay(1);
     }
-    delay(50); // 추가 지연으로 관성 보정
-    while (digitalRead(SENSOR_LEFT) != LINE_DETECTED)
+
+    // 2. 안전 마진을 위해 0.3초 추가 회전
+    delay(300);
+
+    // 3. 다음 라인을 중앙 센서가 감지할 때까지 회전
+    while (digitalRead(SENSOR_MID_L) != LINE_DETECTED)
     {
         delay(1);
     }
 
-    car_brake(100);
-    delay(300);
+    // 4. 회전 정지 및 최종 정렬
+    car_brake(300);
+    line_pid.align_intersection(ALIGN_SPEED); // 정밀 정렬
+    
 }
 
 void turn_right()
 {
+    int speed = TURN_SPEED;
 
-    spin_right_on();
+    // 1. 현재 라인에서 벗어날 때까지 회전
+    spin_right_on(speed);
     while (digitalRead(SENSOR_RIGHT) == LINE_DETECTED)
     {
         delay(1);
     }
 
-    delay(50);
+    // 2. 안전 마진을 위해 0.3초 추가 회전
+    delay(300);
 
+    // 3. 다음 라인을 중앙 센서가 감지할 때까지 회전
     while (digitalRead(SENSOR_MID_R) != LINE_DETECTED)
     {
         delay(1);
     }
 
+    // 4. 회전 정지 및 최종 정렬
     car_brake(300);
+    line_pid.align_intersection(ALIGN_SPEED); // 정밀 정렬
+
 
 }
 
