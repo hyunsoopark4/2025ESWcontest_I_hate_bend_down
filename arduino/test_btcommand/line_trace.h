@@ -18,6 +18,7 @@
 #define SPEED_TORQUE_FAST 255
 #define SPEED_TORQUE_SLOW 70
 #define SPEED_TURN_TORQUE_FWD 220
+#define REVERSE_SPEED 80
 
 // 센서 핀과 LINE_DETECTED는 pid.h에서 이미 정의됨
 // 가독성 향상을 위한 정의

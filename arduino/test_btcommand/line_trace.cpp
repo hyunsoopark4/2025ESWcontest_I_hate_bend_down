@@ -38,8 +38,7 @@ void line_trace(int base_speed)
 
     // 3단계: 역방향 PID 라인트레이싱 (위치 보정)
     Serial.println("Step 3: Reverse PID correction");
-    int reverse_speed = base_speed > 150 ? 100 : 80; // 토크 모드일 때 더 높은 역방향 속도
-    line_pid.reverse_pid_linetrace(reverse_speed, 1000);
+    line_pid.reverse_pid_linetrace(REVERSE_SPEED, 1000);
 
     Serial.println("Line trace sequence complete");
 }
