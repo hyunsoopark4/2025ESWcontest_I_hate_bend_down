@@ -6,7 +6,7 @@
 NeoSWSerial mySerial(BT_RX_PIN, BT_TX_PIN);
 
 // 명령어 문자열 배열 자동 생성
-static const char *command[] = {
+static const char* command[] = {
 #define GENERATE_STRING(ENUM, STRING) STRING,
     COMMAND_LIST(GENERATE_STRING)
 #undef GENERATE_STRING
@@ -19,7 +19,7 @@ void bt_init()
     mySerial.begin(9600);
 }
 
-void parse_coordinates(const char *input, int *x, int *y)
+void parse_coordinates(const char* input, int* x, int* y)
 {
     if (sscanf(input, "(%d,%d)", x, y) != 2)
     {
@@ -28,7 +28,7 @@ void parse_coordinates(const char *input, int *x, int *y)
     }
 }
 
-void send_movement_msg(const char *msg)
+void send_movement_msg(const char* msg)
 {
     mySerial.println(msg);
     Serial.println(msg);
@@ -72,10 +72,16 @@ int bt_checkCommand()
         parse_coordinates(buffer, &x, &y);
         if (x >= 0 && y >= 0)
         {
-            String msg = "Moving to coordinate: (" + String(x) + "," + String(y) + ")";
+            // String 객체 대신 직접 출력으로 메모리 절약
+            mySerial.print("Moving to: (");
+            mySerial.print(x);
+            mySerial.print(",");
+            mySerial.print(y);
+            mySerial.print(")");
             if (isTorqueMode)
-                msg += " [Torque Mode]";
-            send_movement_msg(msg.c_str());
+                mySerial.println(" TQ");
+            else
+                mySerial.println();
 
             // Y축 먼저 이동 (북/남)
             while (current_state.y != y)

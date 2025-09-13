@@ -26,12 +26,12 @@ void line_track(int speed_fast, int speed_slow)
     else if (!mid_l_detected && mid_r_detected)
     {
         // State: [X, 0, 1, X] -> Slightly left of center, steer right
-        set_motor_speeds(2*speed_fast, speed_slow);
+        set_motor_speeds(2 * speed_fast, speed_slow);
     }
     else if (mid_l_detected && !mid_r_detected)
     {
         // State: [X, 1, 0, X] -> Slightly right of center, steer left
-        set_motor_speeds(speed_slow, 2*speed_fast);
+        set_motor_speeds(speed_slow, 2 * speed_fast);
     }
     else
     {
@@ -85,16 +85,13 @@ void line_trace()
         {
             // T-junction or other line event detected.
             // Stop and then pivot to align both sensors with the line.
-            
+
             // 1. Initial stop and stabilization
             car_brake(150);
             delay(100);
 
             // 2. Check which sensor is on the line and align the other.
             // Re-read sensors after brake to get the final resting state.
-            bool final_left_detected = (digitalRead(SENSOR_LEFT) == LINE_DETECTED);
-            bool final_right_detected = (digitalRead(SENSOR_RIGHT) == LINE_DETECTED);
-            
             // If both are on the line after the initial brake, no alignment is needed.
             align_on_intersection(true);
 
@@ -113,10 +110,6 @@ void line_trace()
 
 void turn_left()
 {
-    Serial.println(F("== New Turn Left Sequence Initiated =="));
-
-
-
     spin_left_on();
     while (digitalRead(SENSOR_LEFT) == LINE_DETECTED)
     {
@@ -130,45 +123,6 @@ void turn_left()
 
     car_brake(100);
     delay(300);
-
-    /*
-        // Stage 1: Pre-Alignment on the current line for stability.
-        Serial.println(F("1. Aligning on current line..."));
-        for (int i = 0; i < 100; i++) {
-            line_track();
-            delay(1);
-        }
-        car_brake(100);
-        delay(100);
-
-        // Stage 2: Move forward to position the robot's pivot point in the center of the intersection.
-        // Serial.println(F("2. Moving to intersection center..."));
-        // forward_on();
-        // delay(MOVE_TO_CENTER_DURATION); // This constant is in dc_motor.h and needs tuning.
-
-        // Stage 3: Pivot turn using multiple sensors to find the new line.
-        Serial.println(F("3a. Pivoting left to find new line (outer sensor)..."));
-        spin_left_on();
-        while (digitalRead(SENSOR_LEFT) != LINE_DETECTED) {
-            delay(1);
-        }
-
-        Serial.println(F("3b. ...fine-tuning (mid-left sensor)..."));
-        while (digitalRead(SENSOR_MID_L) != LINE_DETECTED) {
-            delay(1);
-        }
-
-        Serial.println(F("3c. ...slowing down (mid-right sensor)..."));
-        spin_left_on(TURN_SPEED_SLOW);
-        while (digitalRead(SENSOR_MID_R) != LINE_DETECTED) {
-            delay(1);
-        }
-
-        // Stage 4: Stop and stabilize.
-        Serial.println(F("4. Turn complete. Final stop."));
-        car_brake(150);
-        delay(100);
-        */
 }
 
 void turn_right()
@@ -181,14 +135,14 @@ void turn_right()
     }
 
     delay(50);
-    
+
     while (digitalRead(SENSOR_MID_R) != LINE_DETECTED)
     {
         delay(1);
     }
 
     car_brake(300);
-    
+
 }
 
 // --- Torque Mode Functions ---
@@ -218,10 +172,7 @@ void line_trace_torque()
 
 void torque_turn_left()
 {
-    Serial.println(F("== Torque Turn Left Sequence Initiated =="));
-
     // Stage 1: Pre-Alignment
-    Serial.println(F("1. Aligning on current line (torque)..."));
     for (int i = 0; i < 75; i++)
     { // Align for a bit longer due to higher momentum
         line_track(SPEED_TORQUE_FAST, SPEED_TORQUE_SLOW);
@@ -231,25 +182,21 @@ void torque_turn_left()
     delay(100);
 
     // Stage 2: Move to Center
-    Serial.println(F("2. Moving to intersection center (torque)..."));
     forward_on(SPEED_TURN_TORQUE_FWD);
     delay(MOVE_TO_CENTER_DURATION);
 
     // Stage 3: Pivot Turn
-    Serial.println(F("3a. Pivoting left (torque speed)..."));
     spin_left_on(SPEED_TURN_TORQUE_FWD);
     while (digitalRead(SENSOR_LEFT) != LINE_DETECTED)
     {
         delay(1);
     }
 
-    Serial.println(F("3b. ...fine-tuning (mid-left sensor)..."));
     while (digitalRead(SENSOR_MID_L) != LINE_DETECTED)
     {
         delay(1);
     }
 
-    Serial.println(F("3c. ...slowing down (mid-right sensor)..."));
     spin_left_on(SPEED_TURN_TORQUE_FWD / 2); // Use half torque speed for slow part
     while (digitalRead(SENSOR_MID_R) != LINE_DETECTED)
     {
@@ -257,17 +204,13 @@ void torque_turn_left()
     }
 
     // Stage 4: Stop
-    Serial.println(F("4. Turn complete. Final stop."));
     car_brake(150);
     delay(100);
 }
 
 void torque_turn_right()
 {
-    Serial.println(F("== Torque Turn Right Sequence Initiated =="));
-
     // Stage 1: Pre-Alignment
-    Serial.println(F("1. Aligning on current line (torque)..."));
     for (int i = 0; i < 75; i++)
     { // Align for a bit longer due to higher momentum
         line_track(SPEED_TORQUE_FAST, SPEED_TORQUE_SLOW);
@@ -277,25 +220,21 @@ void torque_turn_right()
     delay(100);
 
     // Stage 2: Move to Center
-    Serial.println(F("2. Moving to intersection center (torque)..."));
     forward_on(SPEED_TURN_TORQUE_FWD);
     delay(MOVE_TO_CENTER_DURATION);
 
     // Stage 3: Pivot Turn
-    Serial.println(F("3a. Pivoting right (torque speed)..."));
     spin_right_on(SPEED_TURN_TORQUE_FWD);
     while (digitalRead(SENSOR_RIGHT) != LINE_DETECTED)
     {
         delay(1);
     }
 
-    Serial.println(F("3b. ...fine-tuning (mid-right sensor)..."));
     while (digitalRead(SENSOR_MID_R) != LINE_DETECTED)
     {
         delay(1);
     }
 
-    Serial.println(F("3c. ...slowing down (mid-left sensor)..."));
     spin_right_on(SPEED_TURN_TORQUE_FWD / 2); // Use half torque speed for slow part
     while (digitalRead(SENSOR_MID_L) != LINE_DETECTED)
     {
@@ -303,7 +242,6 @@ void torque_turn_right()
     }
 
     // Stage 4: Stop
-    Serial.println(F("4. Turn complete. Final stop."));
     car_brake(150);
     delay(100);
 }
@@ -373,10 +311,10 @@ void turn_left_stable()
     }
  */
 
-/**
- * @brief 관성으로 지나친 교차로 라인에 로봇을 다시 정렬합니다.
- * 로봇을 후진시켜 양쪽 끝 센서가 모두 라인 위에 위치하도록 조정합니다.
- */
+ /**
+  * @brief 관성으로 지나친 교차로 라인에 로봇을 다시 정렬합니다.
+  * 로봇을 후진시켜 양쪽 끝 센서가 모두 라인 위에 위치하도록 조정합니다.
+  */
 void align_on_intersection(bool back_align) {
     // 이미 정렬된 경우 함수 종료
     if (digitalRead(SENSOR_LEFT) == LINE_DETECTED && digitalRead(SENSOR_RIGHT) == LINE_DETECTED) {
@@ -404,13 +342,14 @@ void align_on_intersection(bool back_align) {
     if (left_on && !right_on) {
         // 왼쪽은 감지, 오른쪽은 못했을 경우: 오른쪽만 뒤로 돌려 마저 정렬
         set_motor_speeds(0, -ALIGN_SPEED);
-        while (! (digitalRead(SENSOR_RIGHT) == LINE_DETECTED && digitalRead(SENSOR_MID_R) == LINE_DETECTED)) {
+        while (!(digitalRead(SENSOR_RIGHT) == LINE_DETECTED && digitalRead(SENSOR_MID_R) == LINE_DETECTED)) {
             delay(1);
         }
-    } else if (!left_on && right_on) {
+    }
+    else if (!left_on && right_on) {
         // 오른쪽은 감지, 왼쪽은 못했을 경우: 왼쪽만 뒤로 돌려 마저 정렬
         set_motor_speeds(-ALIGN_SPEED, 0);
-        while (! (digitalRead(SENSOR_LEFT) == LINE_DETECTED && digitalRead(SENSOR_MID_L) == LINE_DETECTED)) {
+        while (!(digitalRead(SENSOR_LEFT) == LINE_DETECTED && digitalRead(SENSOR_MID_L) == LINE_DETECTED)) {
             delay(1);
         }
     }
